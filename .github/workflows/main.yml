@@ -1,0 +1,111 @@
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+        include:
+          - target: x86_64-unknown-linux-musl
+            name: x86_64-linux
+            os: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            name: x86_64-windows
+            os: windows-latest
+            ext: .exe
+          - target: x86_64-apple-darwin
+            name: x86_64-apple
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            name: aarch64-apple
+            os: macos-latest
+            bin: target/aarch64-apple-darwin/release/archiver
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: sudo apt-get update && sudo apt-get install -y ${{ matrix.packages }}
+        if: matrix.packages
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          profile: minimal
+          override: true
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target ${{ matrix.target }}
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.name }}-archiver
+          path: target/${{ matrix.target }}/release/archiver${{ matrix.ext }}
+  build-macos-universal:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: x86_64-apple-archiver
+          path: x86_64
+      - uses: actions/download-artifact@v3
+        with:
+          name: aarch64-apple-archiver
+          path: aarch64
+
+      - name: Build
+        run: lipo -create -output archiver x86_64/archiver aarch64/archiver
+
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: universal-apple-archiver
+          path: archiver
+  publish:
+    needs: [build, build-macos-universal]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v3
+        with:
+          name: universal-apple-archiver
+          path: apple
+      - uses: actions/download-artifact@v3
+        with:
+          name: x86_64-windows-archiver
+          path: windows
+      - uses: actions/download-artifact@v3
+        with:
+          name: x86_64-linux-archiver
+          path: linux
+      - name: Rename
+        run: |
+          mv apple/archiver apple-archiver
+          mv windows/archiver.exe windows-archiver.exe
+          mv linux/archiver linux-archiver
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: archiver v${{ steps.get_version.outputs.version }}
+          files: |
+            apple-archiver
+            linux-archiver
+            windows-archiver.exe
