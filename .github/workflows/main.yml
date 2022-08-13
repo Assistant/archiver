@@ -13,6 +13,7 @@ jobs:
           - target: x86_64-unknown-linux-musl
             name: x86_64-linux
             os: ubuntu-latest
+            packages: musl-tools
           - target: x86_64-pc-windows-msvc
             name: x86_64-windows
             os: windows-latest
