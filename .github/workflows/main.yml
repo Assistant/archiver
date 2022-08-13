@@ -1,4 +1,9 @@
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '!.github/workflows/main.yml'
 
 jobs:
   build:
