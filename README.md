@@ -1,6 +1,7 @@
 # archiver
 ### Tool to easily archive streams with chat and metadata.
 
+* [Configuration](#configuration)
 * [Usage](#usage)
 * [Installation](#installation)
   * [Shell Complete](#install-shell-autocompletion-optional)
@@ -8,6 +9,24 @@
   * [Runtime](#runtime-dependencies)
   * [Build](#build-dependencies)
 
+
+## Configuration
+You will need to add your API tokens for Twitch and YouTube in the configuration file to archive from those sites respectively.
+|OS|Configuration file location|
+|---|---|
+|Linux|`~/.config/archiver/config.toml`|
+|Windows|`%AppData%\Assistant\archiver\config.toml`|
+|macOS|`~/Library/Application Support/moe.Assistant.archiver/config.toml`|
+
+If you run the program without one existing, a configuration file will be created, which you will need to fill out.
+```toml
+twitch_client_id = ""
+twitch_secret = ""
+youtube_key = ""
+```
+[Get your Twitch `Client ID` and `Secret`](https://dev.twitch.tv/docs/authentication/register-app), if you don't already have them.
+
+[Get your YouTube `API Key`](https://developers.google.com/youtube/registering_an_application), if you don't already have one, and make sure to enable access to the `YouTube Data API v3`, and that you follow the instructions for an `API Key`, and **NOT** `OAuth 2.0`.
 
 ## Usage
 `archiver [OPTIONS] <TYPE> <INPUT>`
