@@ -108,6 +108,13 @@ fn parse_result(
     Err(Error::AlreadyExists) => {
       warn_msg(Some(r#type), format!("Already exists: {filename}"), context);
     }
+    Err(Error::ProcessedChatAlreadyExists) => {
+      warn_msg(
+        Some(r#type),
+        format!("Already processed: {filename}"),
+        context,
+      );
+    }
     Err(Error::Expected) => {}
     Err(_) => {
       error_msg(

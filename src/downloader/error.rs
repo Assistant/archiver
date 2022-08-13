@@ -8,7 +8,7 @@ pub(crate) enum Error {
   JsonParseFailed,
   AlreadyExists,
   NoChatFound,
-  CompressedChatAlreadyExists,
+  ProcessedChatAlreadyExists,
   NoRegexMatch,
   NoMatches,
   NoType,
@@ -72,7 +72,7 @@ impl Display for Error {
     match self {
       Error::AlreadyExists => write!(f, "Already exists"),
       Error::NoChatFound => write!(f, "No chat found"),
-      Error::CompressedChatAlreadyExists => write!(f, "Compressed chat already exists"),
+      Error::ProcessedChatAlreadyExists => write!(f, "Compressed chat already exists"),
       Error::NoRegexMatch => write!(f, "No regex match"),
       Error::NoMatches => write!(f, "No matches"),
       Error::NoType => write!(f, "No type"),

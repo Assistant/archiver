@@ -156,7 +156,7 @@ pub(super) fn process_chat(id: &str, context: &Context) -> Result<(), Error> {
   let compressed_string = format!("{id}.ssa.br");
   let compressed = Path::new(&compressed_string);
   if compressed.exists() {
-    return Err(Error::CompressedChatAlreadyExists);
+    return Err(Error::ProcessedChatAlreadyExists);
   }
   if context.missing.contains(&External::Brotli) {
     return Err(Error::MissingProgram(External::Brotli));
