@@ -257,7 +257,13 @@ fn get_video<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
     return Err(Error::MissingProgram(External::YtDlp));
   }
   let status = Command::new("yt-dlp")
-    .args(&["-N", &context.threads.to_string(), "--compat-options", "filename", &url])
+    .args(&[
+      "-N",
+      &context.threads.to_string(),
+      "--compat-options",
+      "filename",
+      &url,
+    ])
     .stdout(log)
     .stderr(err_log)
     .status()?;
