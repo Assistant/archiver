@@ -70,6 +70,7 @@ These are optional flags that affect how the program works.
 - `-g <SHELL>`, `--generate <SHELL>`: [Shell Complete](#install-shell-autocompletion-optional) [does not require `<TYPE>` or `<INPUT>`]
 - `-h`, `--help`: Print help information [does not require `<TYPE>` or `<INPUT>`]
 - `-l`, `--logging`: Enable logging of external commands, e.g., `yt-dlp` will create `<id>.video.log` with its output
+- `-N <THREADS>`, `--threads <THREADS>`: Number of video pieces to download simultaneously [default: 1]
 - `-s`, `--silent`: Suppress output, using it twice will suppress errors too
 - `-v`, `--verbose`: Increases output, useful for debugging and reporting issues
 - `-V`, `--version`: Print version information [does not require `<TYPE>` or `<INPUT>`]

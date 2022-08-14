@@ -52,6 +52,10 @@ struct Cli {
   #[clap(help_heading = "INPUT")]
   videos: Option<String>,
 
+  /// Number of video pieces to download simultaneously
+  #[clap(long, short = 'N', default_value = "1")]
+  threads: u16,
+
   /// How long ago to start searching for clips, refer to docs for format
   #[clap(
     short,
@@ -97,6 +101,7 @@ pub(super) struct Args {
   pub(super) logging: bool,
   pub(super) range: String,
   pub(super) interval: String,
+  pub(super) threads: u16,
 }
 
 pub(super) fn parse() -> Result<Args, Error> {
@@ -135,6 +140,7 @@ pub(super) fn parse() -> Result<Args, Error> {
     cli.logging,
     cli.range,
     cli.interval,
+    cli.threads,
   ))
 }
 

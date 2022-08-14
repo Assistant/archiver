@@ -223,6 +223,7 @@ pub(super) fn get_video<T: VideoInfo>(info: &T, context: &Context) -> Result<(),
   }
   let status = Command::new("yt-dlp")
     .args(&[
+      "-N", &context.threads.to_string(),
       "--compat-options",
       "filename",
       "--downloader",
