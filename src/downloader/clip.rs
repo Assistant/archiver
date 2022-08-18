@@ -74,13 +74,21 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
         "https://api.twitch.tv/helix/clips?first=100&broadcaster_id={id}&after={after}&started_at={start_string}&ended_at={end_string}",
       );
       if context.verbosity >= 3 {
-        println!("{url}");
+        println!("URL: {url}");
       }
       let response = get(&url, context)?;
-      let data: PagedTwitchResponse<T> = serde_json::from_str(&response)?;
       if context.verbosity >= 3 {
-        println!("{data:?}");
+        println!("Response: {response}");
       }
+      let data: PagedTwitchResponse<T> = match serde_json::from_str(&response) {
+        Ok(data) => data,
+        Err(err) => {
+          if context.verbosity >= 3 {
+            println!("JSON Error: {err}");
+          }
+          break 'page;
+        }
+      };
       for video in data.data {
         videos.push(video);
       }
@@ -215,7 +223,7 @@ pub(crate) struct Clip {
   thumbnail_url: String,
   duration: f64,
   #[serde(default)]
-  vod_offset: u64,
+  vod_offset: Option<u64>,
 }
 
 impl VideoInfo for Clip {
