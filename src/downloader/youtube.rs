@@ -1,8 +1,8 @@
-use super::{twitch::Video, utils::VideoInfo, Context};
+use super::{twitch::Video, Context};
 use crate::{
   downloader::common,
   init::external::External,
-  utils::{message, regular_message, sanitize},
+  utils::{colorize, message, sanitize, VideoInfo},
   Error,
 };
 use colored::Color;
@@ -30,10 +30,7 @@ lazy_static! {
   };
 }
 
-// https://www.youtube.com/watch?v=ywFHNP3lFPA
-// https://youtu.be/ywFHNP3lFPA
-
-pub(super) fn download<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+pub(super) fn download<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   common::download(
     info,
     context,
@@ -45,14 +42,14 @@ pub(super) fn download<T: VideoInfo>(info: &T, context: &Context) -> Result<(), 
   )
 }
 
-pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &Context) -> Result<Vec<T>, Error> {
+pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &mut Context) -> Result<Vec<T>, Error> {
   common::get_ids(data, "", context, &[&ID_REGEX, &URL_REGEX], id2info)
 }
 
 fn id2info<T: VideoInfo>(
   ids: Vec<String>,
   _type: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<Vec<T>, Error> {
   let ids = ids
     .iter()
@@ -72,7 +69,7 @@ fn id2info<T: VideoInfo>(
   get_info(ids, context)
 }
 
-fn get_info<T: VideoInfo>(mut ids: Vec<String>, context: &Context) -> Result<Vec<T>, Error> {
+fn get_info<T: VideoInfo>(mut ids: Vec<String>, context: &mut Context) -> Result<Vec<T>, Error> {
   let max = 50;
   let mut info = Vec::new();
   while !ids.is_empty() {
@@ -82,43 +79,48 @@ fn get_info<T: VideoInfo>(mut ids: Vec<String>, context: &Context) -> Result<Vec
     for id in iter {
       query.push_str(format!("%2C{id}").as_str());
     }
-    if context.verbosity >= 3 {
-      regular_message(Some("id2info"), &format!("Query: {query}"));
-    }
+    message(format!("[get_info] Query {query}"), context, 3);
     let url = format!("https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id={query}&maxResults={max}&key={}", context.token);
-    if context.verbosity >= 3 {
-      regular_message(Some("id2info"), &format!("url: {url}"));
-    }
+    message(format!("[get_info] URL: {url}"), context, 3);
     if let Ok(response) = get(&url, context) {
-      if context.verbosity >= 3 {
-        println!("{response:#?}");
-      }
+      message(format!("[get_info] Response: {response}"), context, 3);
       match serde_json::from_str::<YtResponse<T>>(&response) {
         Ok(mut data) => info.append(&mut data.items),
         Err(err) => message(
-          Some("id2info"),
-          &format!("Could not deserialize: {}", err),
-          Color::BrightRed,
+          colorize(
+            Some("get_info"),
+            &format!("JSON Error: {err}"),
+            Color::BrightRed,
+          ),
+          context,
+          -1,
         ),
       }
     }
   }
-  if context.verbosity >= 3 {
-    regular_message(Some("id2info"), &"Info found:".to_string());
-    for inf in info.iter() {
-      println!("  {inf}");
-    }
+  message("[get_info] Info found:".to_string(), context, 3);
+  for inf in info.iter() {
+    message(format!("  {inf}"), context, 3);
   }
   Ok(info)
 }
 
 pub(super) fn get_channel_ids<T: VideoInfo>(
   channel: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<Vec<T>, Error> {
   let max = 50;
   let channel = common::regex_helper(channel, context, &[&CHAN_REGEX, &CHAN_URL_REGEX])?;
   let user = get_channel(&channel, context)?;
+  message(
+    colorize(
+      Some("get_channel_ids"),
+      &format!("Found channel with id {}", user.id),
+      Color::BrightGreen,
+    ),
+    context,
+    2,
+  );
   let playlist = user.content_details.related_playlists.uploads;
   let mut videos = Vec::new();
   let mut after = String::new();
@@ -126,27 +128,28 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
     let url = format!(
       "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults={max}&playlistId={playlist}&key={}&pageToken={after}", context.token
     );
-    if context.verbosity >= 3 {
-      println!("{url}");
-    }
+    message(format!("[get_channel_ids] URL: {url}"), context, 3);
     let response = get(&url, context)?;
-    if context.verbosity >= 3 {
-      println!("{response:?}");
-    }
+    message(
+      format!("[get_channel_ids] Response: {response}"),
+      context,
+      3,
+    );
     let data: YtResponse<PlaylistItem> = match serde_json::from_str(&response) {
       Ok(data) => data,
       Err(err) => {
         message(
-          Some("get_channel_ids"),
-          &format!("Could not deserialize: {err}"),
-          Color::BrightRed,
+          colorize(
+            Some("get_channel_ids"),
+            &format!("Could not deserialize: {err}"),
+            Color::BrightRed,
+          ),
+          context,
+          -1,
         );
         return Err(err.into());
       }
     };
-    if context.verbosity >= 3 {
-      println!("{data:?}");
-    }
     for video in data.items {
       videos.push(video.snippet.resource_id.video_id.to_string());
     }
@@ -158,7 +161,7 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
   get_info(videos, context)
 }
 
-fn get_channel(channel: &str, context: &Context) -> Result<Channel, Error> {
+fn get_channel(channel: &str, context: &mut Context) -> Result<Channel, Error> {
   let url = format!(
     "https://youtube.googleapis.com/youtube/v3/channels?part=contentDetails&id={channel}&key={}",
     context.token
@@ -177,12 +180,12 @@ fn get_channel(channel: &str, context: &Context) -> Result<Channel, Error> {
   Err(Error::NoMatches)
 }
 
-fn save_json<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+fn save_json<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   let info: Video = info.to_video();
   common::save_json(&info, context)
 }
 
-fn get_chat(id: &str, context: &Context) -> Result<(), Error> {
+fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   let chat_string = format!("{id}.chat.json");
   let chat = Path::new(&chat_string);
   if chat.exists() {
@@ -224,11 +227,11 @@ fn get_chat(id: &str, context: &Context) -> Result<(), Error> {
   Ok(())
 }
 
-fn process_chat(_chat: &str, _context: &Context) -> Result<(), Error> {
+fn process_chat(_chat: &str, _context: &mut Context) -> Result<(), Error> {
   Err(Error::Expected)
 }
 
-fn get_video<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+fn get_video<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   let video_filename = filename(info.title().to_string(), info.id().to_string());
   let video = Path::new(&video_filename);
   let url = format!("https://youtube.com/watch?v={}", info.id());
@@ -279,11 +282,11 @@ fn filename(title: String, id: String) -> String {
   filename
 }
 
-fn get_status(url: &str, context: &Context) -> Result<StatusCode, Error> {
+fn get_status(url: &str, context: &mut Context) -> Result<StatusCode, Error> {
   Ok(context.client.get(url).send()?.status())
 }
 
-fn get(url: &str, context: &Context) -> Result<String, Error> {
+fn get(url: &str, context: &mut Context) -> Result<String, Error> {
   Ok(
     context
       .client

@@ -10,10 +10,10 @@ use crate::init::{external::External, Context, VideoType, Videos};
 use crate::Error;
 use utils::VideoInfo;
 
-use self::utils::{help_error, start_spinner, stop_spinner};
+use self::utils::{help_error, message};
 
 impl Videos {
-  pub(super) fn download<T: VideoInfo>(&self, context: &Context) {
+  pub(super) fn download<T: VideoInfo>(&self, context: &mut Context) {
     let (platform, ids): (&VideoType, Result<Vec<T>, Error>) = match self {
       Videos::Direct(info) => (
         &info.platform,
@@ -36,9 +36,7 @@ impl Videos {
         Ok(()) => {}
         Err(err) => {
           // todo!() Maybe count errors?
-          if context.verbosity >= -1 {
-            println!("{err:?}");
-          }
+          message(format!("{err}"), context, -1);
         }
       }
     }
@@ -46,7 +44,7 @@ impl Videos {
 }
 
 impl VideoType {
-  fn download<T: VideoInfo>(&self, info: &T, context: &Context) -> Result<(), Error> {
+  fn download<T: VideoInfo>(&self, info: &T, context: &mut Context) -> Result<(), Error> {
     match self {
       VideoType::Vod => vod::download(info, context),
       VideoType::Highlight => highlight::download(info, context),
@@ -54,15 +52,19 @@ impl VideoType {
       VideoType::YouTube => youtube::download(info, context),
     }
   }
-  fn get_videos_ids<T: VideoInfo>(&self, data: &str, context: &Context) -> Result<Vec<T>, Error> {
-    let spinner = start_spinner(" Getting data from IDs", context.verbosity);
+  fn get_videos_ids<T: VideoInfo>(
+    &self,
+    data: &str,
+    context: &mut Context,
+  ) -> Result<Vec<T>, Error> {
+    context.spinner.create(" Getting data from IDs");
     let info = match self {
       VideoType::Vod => vod::get_ids(data, context),
       VideoType::Highlight => highlight::get_ids(data, context),
       VideoType::Clip => clip::get_ids(data, context),
       VideoType::YouTube => youtube::get_ids(data, context),
     };
-    stop_spinner(spinner);
+    context.spinner.stop();
     match info {
       Ok(info) => Ok(info),
       Err(err) => {
@@ -81,16 +83,16 @@ impl VideoType {
   fn get_channel_ids<T: VideoInfo>(
     &self,
     channel: &str,
-    context: &Context,
+    context: &mut Context,
   ) -> Result<Vec<T>, Error> {
-    let spinner = start_spinner(" Getting channel data", context.verbosity);
+    context.spinner.create(" Getting channel data");
     let info = match self {
       VideoType::Vod => vod::get_channel_ids(channel, context),
       VideoType::Highlight => highlight::get_channel_ids(channel, context),
       VideoType::Clip => clip::get_channel_ids(channel, context),
       VideoType::YouTube => youtube::get_channel_ids(channel, context),
     };
-    stop_spinner(spinner);
+    context.spinner.stop();
     info
   }
 }

@@ -10,10 +10,13 @@ use utils::error;
 
 fn main() {
   match init::run() {
-    Ok(Input { videos, context }) => match &context.downloader {
-      VideoType::Vod | VideoType::Highlight => videos.download::<Video>(&context),
-      VideoType::Clip => videos.download::<Clip>(&context),
-      VideoType::YouTube => videos.download::<YtVideo>(&context),
+    Ok(Input {
+      videos,
+      mut context,
+    }) => match &context.downloader {
+      VideoType::Vod | VideoType::Highlight => videos.download::<Video>(&mut context),
+      VideoType::Clip => videos.download::<Clip>(&mut context),
+      VideoType::YouTube => videos.download::<YtVideo>(&mut context),
     },
     Err(Error::Token(msg) | Error::Config(msg)) => error(&msg, None),
     Err(_) => {}

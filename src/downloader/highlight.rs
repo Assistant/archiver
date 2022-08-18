@@ -11,7 +11,7 @@ lazy_static! {
   };
 }
 
-pub(super) fn download<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+pub(super) fn download<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   common::download(
     info,
     context,
@@ -23,7 +23,7 @@ pub(super) fn download<T: VideoInfo>(info: &T, context: &Context) -> Result<(), 
   )
 }
 
-pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &Context) -> Result<Vec<T>, Error> {
+pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &mut Context) -> Result<Vec<T>, Error> {
   common::get_ids(
     data,
     "highlight",
@@ -35,7 +35,7 @@ pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &Context) -> Result<Vec
 
 pub(super) fn get_channel_ids<T: VideoInfo>(
   channel: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<Vec<T>, Error> {
   twitch::get_channel_ids::<T>(channel, "highlight", context)
 }

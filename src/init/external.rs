@@ -9,7 +9,7 @@ use std::{
   process::{Command, Stdio},
 };
 
-pub(super) fn init(context: &Context) {
+pub(super) fn init(context: &mut Context) {
   match context.downloader {
     VideoType::Vod | VideoType::Highlight => {
       let _ = init_tcd(context);
@@ -18,7 +18,7 @@ pub(super) fn init(context: &Context) {
   }
 }
 
-fn init_tcd(context: &Context) -> Result<(), Error> {
+fn init_tcd(context: &mut Context) -> Result<(), Error> {
   if !context.missing.contains(&External::Tcd) {
     let output = Command::new("tcd").arg("--settings").output()?;
     let filename = String::from_utf8(output.stdout)?;

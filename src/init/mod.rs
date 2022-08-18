@@ -1,6 +1,5 @@
 use self::external::External;
-use crate::utils::{start_spinner, stop_spinner};
-use crate::Error;
+use crate::{utils::Spinner, Error};
 use chrono::Duration;
 use derive_more::Constructor;
 use regex::Regex;
@@ -25,48 +24,49 @@ pub(super) struct Input {
 
 pub(super) fn run() -> Result<Input, Error> {
   let args = args::parse()?;
+  let mut spinner = Spinner::new(args.verbosity);
 
-  let spinner = start_spinner(" Checking external programs", args.verbosity);
+  spinner.create(" Checking external programs");
   let missing = external::find_missing(&args.video_type);
-  stop_spinner(spinner);
+  spinner.stop();
   if args.verbosity >= -1 {
     for command in &missing {
       command.missing();
     }
   };
 
-  let spinner = start_spinner(" Getting config", args.verbosity);
-  let config = match config::get(args.verbosity) {
+  spinner.create(" Getting config");
+  let config = match config::get(args.verbosity, &mut spinner) {
     Ok(config) => config,
     Err(error) => {
-      stop_spinner(spinner);
+      spinner.stop();
       return Err(error);
     }
   };
-  stop_spinner(spinner);
+  spinner.stop();
 
-  let spinner = start_spinner(" Checking tokens", args.verbosity);
+  spinner.create(" Checking tokens");
   let token_package = match token::get(&args.video_type, &config) {
     Ok(token_package) => token_package,
     Err(error) => {
-      stop_spinner(spinner);
+      spinner.stop();
       return Err(error);
     }
   };
-  stop_spinner(spinner);
+  spinner.stop();
 
   let (range, interval) = match args.video_type {
     VideoType::Clip => {
-      let spinner = start_spinner(" Parsing arguments", args.verbosity);
+      spinner.create(" Parsing arguments");
       let range = parse_duration(&args.range);
       let interval = parse_duration(&args.interval);
-      stop_spinner(spinner);
+      spinner.stop();
       (range, interval)
     }
     _ => (*ZERO, *ZERO),
   };
 
-  let context = Context {
+  let mut context = Context {
     verbosity: args.verbosity,
     token: token_package.token,
     client: token_package.client,
@@ -78,8 +78,9 @@ pub(super) fn run() -> Result<Input, Error> {
     range,
     interval,
     logging: args.logging,
+    spinner,
   };
-  external::init(&context);
+  external::init(&mut context);
   Ok(Input::new(args.videos, context))
 }
 
@@ -116,6 +117,7 @@ pub(super) struct Context {
   pub(super) range: Duration,
   pub(super) interval: Duration,
   pub(super) logging: bool,
+  pub(super) spinner: Spinner,
 }
 
 fn parse_duration(text: &str) -> Duration {

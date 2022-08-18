@@ -1,9 +1,9 @@
-use crate::Error;
+use crate::{utils::Spinner, Error};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub(super) fn get(verbosity: i8) -> Result<Config, Error> {
+pub(super) fn get(verbosity: i8, spinner: &mut Spinner) -> Result<Config, Error> {
   let project_dirs = match ProjectDirs::from("moe", "Assistant", "archiver") {
     Some(dirs) => dirs,
     None => {
@@ -35,7 +35,9 @@ pub(super) fn get(verbosity: i8) -> Result<Config, Error> {
     }
     Err(err) => {
       if verbosity >= 3 {
-        println!("{:?}", err);
+        spinner.stop();
+        println!("[config] {err}");
+        spinner.start();
       }
       return Err(Error::Config(format!(
         "Could not read config file: {}",

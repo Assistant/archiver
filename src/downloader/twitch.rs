@@ -1,6 +1,5 @@
 use super::common::{self, filename};
-use super::utils::regular_message;
-use super::utils::{error, message, VideoInfo};
+use super::utils::{colorize, error, message, VideoInfo};
 use super::youtube::YtVideo;
 use super::Context;
 use crate::init::external::External;
@@ -27,12 +26,10 @@ lazy_static! {
 pub(super) fn id2info<T: VideoInfo>(
   ids: Vec<String>,
   r#type: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<Vec<T>, Error> {
   let max = 100;
-  if context.verbosity >= 3 {
-    regular_message(Some("id2info"), &format!("Getting info for {ids:?}"));
-  }
+  message(format!("[id2info] Getting info for {ids:?}"), context, 3);
   let mut info = Vec::new();
   let mut ids: Vec<String> = ids;
   while !ids.is_empty() {
@@ -42,34 +39,30 @@ pub(super) fn id2info<T: VideoInfo>(
     for id in iter {
       query.push_str(format!("&id={id}").as_str());
     }
-    if context.verbosity >= 3 {
-      regular_message(Some("id2info"), &format!("Query: {query}"));
-    }
+    message(format!("[id2info] Query: {query}"), context, 3);
     let endpoint = match r#type {
       "highlight" | "archive" => "videos",
       "clip" => "clips",
       _ => return Err(Error::NoType),
     };
     let url = format!("https://api.twitch.tv/helix/{endpoint}/{query}");
-    if context.verbosity >= 3 {
-      regular_message(Some("id2info"), &format!("url: {url}"));
-    }
+    message(format!("[id2info] URL: {url}"), context, 3);
     if let Ok(response) = get(&url, context) {
-      if context.verbosity >= 3 {
-        println!("{response:#?}");
-      }
+      message(format!("[id2info] Response: {response}"), context, 3);
       if let Ok(mut data) = serde_json::from_str::<TwitchResponse<T>>(&response) {
         info.append(&mut data.data);
       } else {
-        message(Some("id2info"), "Could not deserialize.", Color::BrightRed);
+        message(
+          colorize(Some("id2info"), "Could not deserialize.", Color::BrightRed),
+          context,
+          -1,
+        );
       }
     }
   }
-  if context.verbosity >= 3 {
-    regular_message(Some("id2info"), "Info found:");
-    for inf in &info {
-      println!("  {inf}");
-    }
+  message("[id2info] Info found:".to_string(), context, 3);
+  for inf in &info {
+    message(format!("  {inf}"), context, 3);
   }
   Ok(info)
 }
@@ -77,30 +70,38 @@ pub(super) fn id2info<T: VideoInfo>(
 pub(super) fn get_channel_ids<T: VideoInfo>(
   channel: &str,
   r#type: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<Vec<T>, Error> {
   let ChannelData { username, id } = get_channel(channel, context)?;
-  if context.verbosity >= 1 {
-    message(
-      Some("channel"),
+  message(
+    colorize(
+      Some("get_channel_ids"),
       &format!("Found channel {username} with id {id}"),
       Color::BrightGreen,
-    );
-  }
+    ),
+    context,
+    2,
+  );
   let mut videos = Vec::new();
   let mut after = String::new();
   loop {
     let url = format!(
       "https://api.twitch.tv/helix/videos?user_id={id}&type={type}&first=100&after={after}"
     );
-    if context.verbosity >= 3 {
-      println!("{url}");
-    }
+    message(format!("[get_channel_ids] URL: {url}"), context, 3);
     let response = get(&url, context)?;
-    let data: PagedTwitchResponse<T> = serde_json::from_str(&response)?;
-    if context.verbosity >= 3 {
-      println!("{data:?}");
-    }
+    message(
+      format!("[get_channel_ids] Response: {response}"),
+      context,
+      3,
+    );
+    let data: PagedTwitchResponse<T> = match serde_json::from_str(&response) {
+      Ok(data) => data,
+      Err(err) => {
+        message(format!("[get_channel_ids] JSON Error: {err}"), context, 3);
+        return Err(err.into());
+      }
+    };
     for video in data.data {
       videos.push(video);
     }
@@ -112,7 +113,7 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
   Ok(videos)
 }
 
-pub(super) fn get_chat(id: &str, context: &Context) -> Result<(), Error> {
+pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   let chat_string = format!("{id}.ssa");
   let chat = Path::new(&chat_string);
   if chat.exists() {
@@ -150,7 +151,7 @@ pub(super) fn get_chat(id: &str, context: &Context) -> Result<(), Error> {
   Ok(())
 }
 
-pub(super) fn process_chat(id: &str, context: &Context) -> Result<(), Error> {
+pub(super) fn process_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   let chat_string = format!("{id}.ssa");
   let chat = Path::new(&chat_string);
   let compressed_string = format!("{id}.ssa.br");
@@ -193,7 +194,7 @@ pub(super) fn process_chat(id: &str, context: &Context) -> Result<(), Error> {
   Ok(())
 }
 
-pub(super) fn get_video<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+pub(super) fn get_video<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   let video_filename = filename(info.title().to_string(), info.id());
   let video = Path::new(&video_filename);
   let url = format!("https://www.twitch.tv/videos/{}", info.id());
@@ -346,24 +347,22 @@ fn channel_regex(channel: &str) -> bool {
   RE.is_match(channel)
 }
 
-fn get_channel_request(identifier: &str, context: &Context) -> Result<ChannelData, Error> {
+fn get_channel_request(identifier: &str, context: &mut Context) -> Result<ChannelData, Error> {
   let url = format!("https://api.twitch.tv/helix/users?{identifier}");
   let response = get(&url, context)?;
-  if context.verbosity >= 3 {
-    println!("[channel_type] response: {:#?}", response);
-  }
+  message(format!("[channel_type] Response: {response}"), context, 3);
   let user_response: TwitchResponse<User> = serde_json::from_str(&response)?;
-  if context.verbosity >= 3 {
-    println!("[channel_type] user_response: {:#?}", user_response);
-  }
+  message(
+    format!("[channel_type] user_response: {user_response:#?}"),
+    context,
+    3,
+  );
   match user_response.data.len() {
     0 => Err(Error::NoMatches),
     1 => {
       let user_data = &user_response.data[0];
       let user = ChannelData::new(user_data.login.to_string(), user_data.id.to_string());
-      if context.verbosity >= 3 {
-        println!("[channel_type] id: {user:?}");
-      }
+      message(format!("[channel_type] ID: {user:?}"), context, 3);
       Ok(user)
     }
     _ => {
@@ -373,7 +372,7 @@ fn get_channel_request(identifier: &str, context: &Context) -> Result<ChannelDat
   }
 }
 
-pub(super) fn get_channel(channel: &str, context: &Context) -> Result<ChannelData, Error> {
+pub(super) fn get_channel(channel: &str, context: &mut Context) -> Result<ChannelData, Error> {
   let channel = common::regex_helper(channel, context, &[&CHANNEL])?;
   let id = format!("id={channel}");
   let login = format!("login={channel}");
@@ -387,7 +386,7 @@ pub(super) fn get_channel(channel: &str, context: &Context) -> Result<ChannelDat
   }
 }
 
-pub(super) fn get(url: &str, context: &Context) -> Result<String, Error> {
+pub(super) fn get(url: &str, context: &mut Context) -> Result<String, Error> {
   Ok(
     (&context.client)
       .get(url)

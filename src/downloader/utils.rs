@@ -6,7 +6,7 @@ use regex::{Captures, Regex};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::{
-  fmt::{Debug, Display},
+  fmt::{self, Debug, Display, Formatter},
   fs::File,
   io::Write,
   path::Path,
@@ -27,54 +27,48 @@ pub(super) fn split_videos(data: &str) -> Vec<String> {
   data.split(',').map(|s| s.trim().to_string()).collect()
 }
 
-pub(super) fn message(label: Option<&str>, message: &str, color: Color) {
+pub(super) fn colorize(label: Option<&str>, message: &str, color: Color) -> String {
   if let Some(label) = label {
-    println!(
+    format!(
       "{}{}{} {}",
       "[".bold().color(color),
       label,
       "]".bold().color(color),
       message.bold().color(color)
-    );
+    )
   } else {
-    println!("{}", message.bold().color(color));
+    message.bold().color(color).to_string()
   }
 }
 
-pub(super) fn regular_message(label: Option<&str>, message: &str) {
-  match label {
-    Some(label) => println!("[{label}] {message}"),
-    None => println!("{message}"),
+pub(super) fn message(msg: String, context: &mut Context, threshold: i8) {
+  if context.verbosity >= threshold {
+    context.spinner.stop();
+    println!("{msg}");
+    context.spinner.start();
   }
 }
 
 pub(super) fn help_error(message: &str, extra: Option<&[&str]>) {
-  eprintln!("{} {}", "error:".bold().bright_red(), message,);
-  if let Some(extra) = extra {
-    for line in extra {
-      eprintln!("{}", line);
-    }
-  }
+  error(message, extra);
   eprintln!("\nUSAGE:\n    archiver [OPTIONS] <TYPE> <INPUT>");
   eprintln!("\nFor more information try {}", "archiver --help".green());
 }
 
-pub(super) fn good_msg<T: Into<String>>(label: Option<&str>, msg: T, context: &Context) {
-  if context.verbosity >= 0 {
-    message(label, &msg.into(), Color::BrightGreen);
-  }
+pub(super) fn good_msg<T: Into<String>>(label: Option<&str>, msg: T, context: &mut Context) {
+  message(colorize(label, &msg.into(), Color::BrightGreen), context, 0);
 }
 
-pub(super) fn warn_msg<T: Into<String>>(label: Option<&str>, msg: T, context: &Context) {
-  if context.verbosity >= 1 {
-    message(label, &msg.into(), Color::BrightYellow);
-  }
+pub(super) fn warn_msg<T: Into<String>>(label: Option<&str>, msg: T, context: &mut Context) {
+  message(
+    colorize(label, &msg.into(), Color::BrightYellow),
+    context,
+    1,
+  );
 }
 
-pub(super) fn error_msg<T: Into<String>>(label: Option<&str>, msg: T, context: &Context) {
-  if context.verbosity >= -1 {
-    message(label, &msg.into(), Color::BrightRed);
-  }
+pub(super) fn error_msg<T: Into<String>>(label: Option<&str>, msg: T, context: &mut Context) {
+  message(colorize(label, &msg.into(), Color::BrightRed), context, -1);
 }
 
 pub(crate) fn error(message: &str, extra: Option<&[&str]>) {
@@ -99,7 +93,7 @@ pub(super) fn write_file(path: impl AsRef<Path>, content: &[u8]) -> Result<(), E
 pub(super) fn download_file(
   path: impl AsRef<Path>,
   url: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<(), Error> {
   let response = context.client.get(url).send()?;
   let content = response.bytes()?;
@@ -191,21 +185,55 @@ pub(super) fn sanitize(data: String, restricted: bool) -> String {
   }
 }
 
-pub(crate) fn start_spinner(message: &str, verbosity: i8) -> Option<SpinnerHandle> {
-  if verbosity >= -1 {
-    Some(
-      SpinnerBuilder::new()
-        .spinner(&DOTS2)
-        .text(message.to_string())
-        .start(),
+pub(crate) struct Spinner {
+  handle: Option<SpinnerHandle>,
+  message: Option<String>,
+  verbosity: i8,
+}
+
+impl Debug for Spinner {
+  fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    let handle = match &self.handle {
+      Some(_) => "Some",
+      None => "None",
+    };
+    write!(
+      f,
+      "Spinner {{ handle: {handle}, message: {:?} }}",
+      self.message
     )
-  } else {
-    None
   }
 }
 
-pub(crate) fn stop_spinner(spinner: Option<SpinnerHandle>) {
-  if let Some(spinner) = spinner {
-    spinner.stop();
+impl Spinner {
+  pub(crate) fn new(verbosity: i8) -> Self {
+    Self {
+      handle: None,
+      message: None,
+      verbosity,
+    }
+  }
+  pub(crate) fn create(&mut self, message: &str) {
+    if self.verbosity >= 1 {
+      self.message = Some(message.to_string());
+      self.handle = Some(
+        SpinnerBuilder::new()
+          .spinner(&DOTS2)
+          .text(message.to_string())
+          .start(),
+      );
+    }
+  }
+  pub(crate) fn start(&mut self) {
+    if self.verbosity >= 1 {
+      if let Some(msg) = self.message.clone() {
+        self.create(&msg);
+      }
+    }
+  }
+  pub(crate) fn stop(&mut self) {
+    if let Some(handle) = self.handle.take() {
+      handle.stop();
+    }
   }
 }

@@ -1,5 +1,5 @@
 use super::twitch::{get, ChannelData, PagedTwitchResponse};
-use super::utils::{message, VideoInfo};
+use super::utils::{colorize, message, VideoInfo};
 use super::{common, twitch, Context};
 use crate::init::external::External;
 use crate::Error;
@@ -25,7 +25,7 @@ lazy_static! {
   };
 }
 
-pub(super) fn download<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+pub(super) fn download<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   common::download(
     info,
     context,
@@ -37,7 +37,7 @@ pub(super) fn download<T: VideoInfo>(info: &T, context: &Context) -> Result<(), 
   )
 }
 
-pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &Context) -> Result<Vec<T>, Error> {
+pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &mut Context) -> Result<Vec<T>, Error> {
   common::get_ids(
     data,
     "clip",
@@ -49,16 +49,18 @@ pub(super) fn get_ids<T: VideoInfo>(data: &str, context: &Context) -> Result<Vec
 
 pub(super) fn get_channel_ids<T: VideoInfo>(
   channel: &str,
-  context: &Context,
+  context: &mut Context,
 ) -> Result<Vec<T>, Error> {
   let ChannelData { username, id } = twitch::get_channel(channel, context)?;
-  if context.verbosity >= 1 {
-    message(
-      Some("channel"),
+  message(
+    colorize(
+      Some("get_channel_ids"),
       &format!("Found channel {username} with id {id}"),
       Color::BrightGreen,
-    );
-  }
+    ),
+    context,
+    2,
+  );
   let mut videos = Vec::new();
   let mut after = String::new();
   let interval = context.interval;
@@ -73,19 +75,17 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
       let url = format!(
         "https://api.twitch.tv/helix/clips?first=100&broadcaster_id={id}&after={after}&started_at={start_string}&ended_at={end_string}",
       );
-      if context.verbosity >= 3 {
-        println!("URL: {url}");
-      }
+      message(format!("[get_channel_ids] URL: {url}"), context, 3);
       let response = get(&url, context)?;
-      if context.verbosity >= 3 {
-        println!("Response: {response}");
-      }
+      message(
+        format!("[get_channel_ids] Response: {response}"),
+        context,
+        3,
+      );
       let data: PagedTwitchResponse<T> = match serde_json::from_str(&response) {
         Ok(data) => data,
         Err(err) => {
-          if context.verbosity >= 3 {
-            println!("JSON Error: {err}");
-          }
+          message(format!("[get_channel_ids] JSON Error: {err}"), context, 2);
           break 'page;
         }
       };
@@ -107,7 +107,7 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
 
 // Chat for Twitch Clips is not working.
 #[allow(unreachable_code, unused)]
-fn get_chat(id: &str, context: &Context) -> Result<(), Error> {
+fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   // Return an error since TwitchDownloaderCLI is not working currently
   return Err(Error::Expected);
   // todo!() Remove when TwitchDownloaderCLI is working, or an alternative is implemented
@@ -156,11 +156,11 @@ fn get_chat(id: &str, context: &Context) -> Result<(), Error> {
   Ok(())
 }
 
-fn process_chat(_id: &str, _context: &Context) -> Result<(), Error> {
+fn process_chat(_id: &str, _context: &mut Context) -> Result<(), Error> {
   Err(Error::Expected)
 }
 
-fn get_video<T: VideoInfo>(info: &T, context: &Context) -> Result<(), Error> {
+fn get_video<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
   let video_filename = format!("{}.mp4", info.id());
   let video = Path::new(&video_filename);
   let url = format!("https://clips.twitch.tv/{}", info.id());
