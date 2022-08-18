@@ -214,7 +214,7 @@ impl Spinner {
     }
   }
   pub(crate) fn create(&mut self, message: &str) {
-    if self.verbosity >= 1 {
+    if self.verbosity >= -1 {
       self.message = Some(message.to_string());
       self.handle = Some(
         SpinnerBuilder::new()
@@ -225,7 +225,7 @@ impl Spinner {
     }
   }
   pub(crate) fn start(&mut self) {
-    if self.verbosity >= 1 {
+    if self.verbosity >= -1 {
       if let Some(msg) = self.message.clone() {
         self.create(&msg);
       }
