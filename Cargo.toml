@@ -1,6 +1,6 @@
 [package]
 name = "archiver"
-version = "1.0.3"
+version = "1.0.4"
 authors = ["Assistant"]
 edition = "2021"
 
