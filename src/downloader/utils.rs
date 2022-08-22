@@ -233,7 +233,11 @@ impl Spinner {
   }
   pub(crate) fn stop(&mut self) {
     if let Some(handle) = self.handle.take() {
-      handle.stop();
+      handle.stop_and_clear();
     }
+  }
+  pub(crate) fn end(&mut self) {
+    self.stop();
+    self.message = None;
   }
 }

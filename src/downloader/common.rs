@@ -35,7 +35,7 @@ pub(super) fn download<T: VideoInfo>(
   let spinner_text = format!(" Saving JSON {id}.json");
   context.spinner.create(&spinner_text);
   let result = save_json(info, context);
-  context.spinner.stop();
+  context.spinner.end();
   parse_result(&result, context, "json", "Download", &format!("{id}.json"));
   if let Err(error) = result {
     if error != Error::AlreadyExists {
@@ -46,7 +46,7 @@ pub(super) fn download<T: VideoInfo>(
   let spinner_text = format!(" Downloading {id}.jpg");
   context.spinner.create(&spinner_text);
   let result = get_thumbnail(info, context);
-  context.spinner.stop();
+  context.spinner.end();
   parse_result(
     &result,
     context,
@@ -58,7 +58,7 @@ pub(super) fn download<T: VideoInfo>(
   let spinner_text = format!(" Downloading {id}{chat_ext}");
   context.spinner.create(&spinner_text);
   let result = get_chat(id, context);
-  context.spinner.stop();
+  context.spinner.end();
   parse_result(
     &result,
     context,
@@ -70,7 +70,7 @@ pub(super) fn download<T: VideoInfo>(
   let spinner_text = format!(" Processing {id}{chat_ext}");
   context.spinner.create(&spinner_text);
   let result = process_chat(id, context);
-  context.spinner.stop();
+  context.spinner.end();
   parse_result(
     &result,
     context,
@@ -82,7 +82,7 @@ pub(super) fn download<T: VideoInfo>(
   let spinner_text = format!(" Downloading {video_title}");
   context.spinner.create(&spinner_text);
   let result = get_video(info, context);
-  context.spinner.stop();
+  context.spinner.end();
   parse_result(&result, context, "video", "Download", &video_title);
 
   message(

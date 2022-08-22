@@ -28,7 +28,7 @@ pub(super) fn run() -> Result<Input, Error> {
 
   spinner.create(" Checking external programs");
   let missing = external::find_missing(&args.video_type);
-  spinner.stop();
+  spinner.end();
   if args.verbosity >= -1 {
     for command in &missing {
       command.missing();
@@ -39,28 +39,28 @@ pub(super) fn run() -> Result<Input, Error> {
   let config = match config::get(args.verbosity, &mut spinner) {
     Ok(config) => config,
     Err(error) => {
-      spinner.stop();
+      spinner.end();
       return Err(error);
     }
   };
-  spinner.stop();
+  spinner.end();
 
   spinner.create(" Checking tokens");
   let token_package = match token::get(&args.video_type, &config) {
     Ok(token_package) => token_package,
     Err(error) => {
-      spinner.stop();
+      spinner.end();
       return Err(error);
     }
   };
-  spinner.stop();
+  spinner.end();
 
   let (range, interval) = match args.video_type {
     VideoType::Clip => {
       spinner.create(" Parsing arguments");
       let range = parse_duration(&args.range);
       let interval = parse_duration(&args.interval);
-      spinner.stop();
+      spinner.end();
       (range, interval)
     }
     _ => (*ZERO, *ZERO),

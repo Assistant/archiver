@@ -64,7 +64,7 @@ impl VideoType {
       VideoType::Clip => clip::get_ids(data, context),
       VideoType::YouTube => youtube::get_ids(data, context),
     };
-    context.spinner.stop();
+    context.spinner.end();
     match info {
       Ok(info) => Ok(info),
       Err(err) => {
@@ -92,7 +92,7 @@ impl VideoType {
       VideoType::Clip => clip::get_channel_ids(channel, context),
       VideoType::YouTube => youtube::get_channel_ids(channel, context),
     };
-    context.spinner.stop();
+    context.spinner.end();
     info
   }
 }
