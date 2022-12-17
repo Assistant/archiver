@@ -15,7 +15,7 @@ pub(super) struct TokenPackage {
   pub(super) token: String,
   pub(super) client: Client,
   pub(super) client_id: String,
-  pub(super) client_secret: String,
+  // pub(super) client_secret: String,
 }
 
 pub(super) fn get(video_type: &VideoType, config: &Config) -> Result<TokenPackage, Error> {
@@ -44,7 +44,7 @@ fn get_twitch_token(config: &Config) -> Result<TokenPackage, Error> {
           json.access_token,
           client,
           client_id,
-          client_secret,
+          // client_secret,
         ))
       }
       Err(_) => Err(Error::Token(
@@ -64,7 +64,7 @@ fn get_youtube_token(config: &Config) -> Result<TokenPackage, Error> {
     config.youtube_key.clone(),
     client,
     String::new(),
-    String::new(),
+    // String::new(),
   ))
 }
 

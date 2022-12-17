@@ -109,7 +109,7 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
 #[allow(unreachable_code, unused)]
 fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   // Return an error since TwitchDownloaderCLI is not working currently
-  return Err(Error::Expected);
+  // return Err(Error::Expected);
   // todo!() Remove when TwitchDownloaderCLI is working, or an alternative is implemented
   let chat_string = format!("{id}.chat.json");
   let chat = Path::new(&chat_string);
@@ -137,16 +137,8 @@ fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     }
     false => (Stdio::null(), Stdio::null()),
   };
-  let status = Command::new("TwitchDownloaderCLI")
-    .args(&[
-      "-m",
-      "ChatDownload",
-      "--id",
-      id,
-      "--embed-emotes",
-      "-o",
-      format!("{id}.chat.json").as_str(),
-    ])
+  let status = Command::new(External::TdCli.command())
+    .args(&["chatdownload", "-u", id, "-o", &format!("{id}.chat.json")])
     .stdout(log)
     .stderr(err_log)
     .status()?;
@@ -188,7 +180,7 @@ fn get_video<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error>
   if context.missing.contains(&External::YtDlp) {
     return Err(Error::MissingProgram(External::YtDlp));
   }
-  let status = Command::new("yt-dlp")
+  let status = Command::new(External::YtDlp.command())
     .args(&[
       "-N",
       &context.threads.to_string(),

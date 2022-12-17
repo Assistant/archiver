@@ -212,7 +212,7 @@ fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     }
     false => (Stdio::null(), Stdio::null()),
   };
-  let status = Command::new("chat_downloader")
+  let status = Command::new(External::Cd.command())
     .args(&[
       &format!("https://www.youtube.com/watch?v={id}"),
       "--output",
@@ -222,7 +222,7 @@ fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     .stderr(err_log)
     .status()?;
   if !status.success() {
-    return Err(Error::CommandFailed(External::Tcd));
+    return Err(Error::CommandFailed(External::Cd));
   }
   Ok(())
 }
@@ -259,7 +259,7 @@ fn get_video<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error>
   if context.missing.contains(&External::YtDlp) {
     return Err(Error::MissingProgram(External::YtDlp));
   }
-  let status = Command::new("yt-dlp")
+  let status = Command::new(External::YtDlp.command())
     .args(&[
       "-N",
       &context.threads.to_string(),

@@ -21,10 +21,11 @@ pub(super) fn download<T: VideoInfo>(
   get_video: fn(&T, &mut Context) -> Result<(), Error>,
 ) -> Result<(), Error> {
   let id = info.id();
-  let chat_ext = match context.downloader {
-    VideoType::Vod | VideoType::Highlight => ".ssa",
-    VideoType::Clip | VideoType::YouTube => ".chat.json",
-  };
+  // let chat_ext = match context.downloader {
+  //   VideoType::Vod | VideoType::Highlight => ".ssa",
+  //   VideoType::Clip | VideoType::YouTube => ".chat.json",
+  // };
+  let chat_ext = ".chat.json";
   let video_title = match context.downloader {
     VideoType::Vod | VideoType::Highlight | VideoType::YouTube => {
       format!("{}-v{id}.mp4", sanitize(info.title().to_string(), false))

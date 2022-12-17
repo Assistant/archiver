@@ -115,12 +115,17 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
 
 pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   let chat_string = format!("{id}.ssa");
+  let json_string = format!("{id}.chat.json");
   let chat = Path::new(&chat_string);
-  if chat.exists() {
+  let json = Path::new(&json_string);
+  if chat.exists() || json.exists() {
     return Err(Error::AlreadyExists);
   }
-  if context.missing.contains(&External::Tcd) {
-    return Err(Error::MissingProgram(External::Tcd));
+  // if context.missing.contains(&External::Tcd) {
+  //   return Err(Error::MissingProgram(External::Tcd));
+  // }
+  if context.missing.contains(&External::TdCli) {
+    return Err(Error::MissingProgram(External::TdCli));
   }
   let (log, err_log) = match context.logging {
     true => {
@@ -140,13 +145,16 @@ pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     }
     false => (Stdio::null(), Stdio::null()),
   };
-  let status = Command::new("tcd")
-    .args(&["-f", "ssa", "-v", id])
+  // let status = Command::new(External::Tcd.command())
+  //   .args(&["-f", "ssa", "-v", id])
+  let status = Command::new(External::TdCli.command())
+    .args(&["chatdownload", "-u", id, "-o", &format!("{id}.chat.json")])
     .stdout(log)
     .stderr(err_log)
     .status()?;
   if !status.success() {
-    return Err(Error::CommandFailed(External::Tcd));
+    // return Err(Error::CommandFailed(External::Tcd));
+    return Err(Error::CommandFailed(External::TdCli));
   }
   Ok(())
 }
@@ -183,7 +191,7 @@ pub(super) fn process_chat(id: &str, context: &mut Context) -> Result<(), Error>
     }
     false => (Stdio::null(), Stdio::null()),
   };
-  let status = Command::new("brotli")
+  let status = Command::new(External::Brotli.command())
     .args(&["-q", "11", format!("{id}.ssa").as_str()])
     .stdout(log)
     .stderr(err_log)
@@ -222,7 +230,7 @@ pub(super) fn get_video<T: VideoInfo>(info: &T, context: &mut Context) -> Result
   if context.missing.contains(&External::YtDlp) {
     return Err(Error::MissingProgram(External::YtDlp));
   }
-  let status = Command::new("yt-dlp")
+  let status = Command::new(External::YtDlp.command())
     .args(&[
       "-N",
       &context.threads.to_string(),
