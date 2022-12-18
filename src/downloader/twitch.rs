@@ -159,7 +159,10 @@ pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
   Ok(())
 }
 
+#[allow(unreachable_code, unused)]
 pub(super) fn process_chat(id: &str, context: &mut Context) -> Result<(), Error> {
+  return Err(Error::Expected);
+
   let chat_string = format!("{id}.ssa");
   let chat = Path::new(&chat_string);
   let compressed_string = format!("{id}.ssa.br");
