@@ -31,9 +31,8 @@ pub(super) fn split_videos(data: &str) -> Vec<String> {
 pub(super) fn colorize(label: Option<&str>, message: &str, color: Color) -> String {
     if let Some(label) = label {
         format!(
-            "{}{}{} {}",
+            "{}{label}{} {}",
             "[".bold().color(color),
-            label,
             "]".bold().color(color),
             message.bold().color(color)
         )

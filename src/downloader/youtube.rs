@@ -10,6 +10,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::{
     cmp::min,
     fmt::{self, Display, Formatter},
@@ -80,8 +81,16 @@ fn get_info<T: VideoInfo>(mut ids: Vec<String>, context: &mut Context) -> Result
         message(&format!("[get_info] URL: {url}"), context, 3);
         if let Ok(response) = get(&url, context) {
             message(&format!("[get_info] Response: {response}"), context, 3);
-            match serde_json::from_str::<YtResponse<T>>(&response) {
-                Ok(mut data) => info.append(&mut data.items),
+            match serde_json::from_str::<YtResponse<Value>>(&response) {
+                Ok(data) => {
+                    for video in data.items {
+                        if past_video(&video) {
+                            if let Ok(video) = serde_json::from_value::<T>(video) {
+                                info.push(video);
+                            }
+                        }
+                    }
+                }
                 Err(err) => message(
                     &colorize(
                         Some("get_info"),
@@ -99,6 +108,17 @@ fn get_info<T: VideoInfo>(mut ids: Vec<String>, context: &mut Context) -> Result
         message(&format!("  {inf}"), context, 3);
     }
     Ok(info)
+}
+
+fn past_video(video: &Value) -> bool {
+    let Some(snippet) = video.get("snippet") else { return false };
+    let Some(live) = snippet.get("liveBroadcastContent") else { return false };
+    live.is_string()
+        && if let Some(value) = live.as_str() {
+            value == "none"
+        } else {
+            false
+        }
 }
 
 pub(super) fn get_channel_ids<T: VideoInfo>(
@@ -327,6 +347,7 @@ pub(super) struct YtSnippet {
     pub(super) title: String,
     pub(super) description: String,
     thumbnails: YtThumbnails,
+    live_broadcast_content: String,
     pub(super) channel_title: String,
     #[serde(default = "default_lang")]
     pub(super) default_language: String,
