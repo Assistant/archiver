@@ -89,6 +89,10 @@ struct Cli {
     /// Generate shell completion script
     #[clap(short, long, arg_enum, value_name = "SHELL", exclusive = true)]
     generate: Option<clap_complete_command::Shell>,
+
+    /// Generate man page
+    #[clap(short, long, exclusive = true)]
+    man: bool,
 }
 
 #[derive(Debug, Constructor)]
@@ -106,6 +110,11 @@ pub(super) fn parse() -> Args {
     let cli = Cli::parse();
     if let Some(shell) = cli.generate {
         shell.generate(&mut Cli::command(), &mut stdout());
+        exit(0);
+    }
+    if cli.man {
+        let man = clap_mangen::Man::new(Cli::command());
+        _ = man.render(&mut stdout());
         exit(0);
     }
 

@@ -10,6 +10,7 @@ edition = "2021"
 chrono = "0.4.20"
 clap = { version = "3.2.14", features = ["derive"] }
 clap_complete_command = "0.3.4"
+clap_mangen = "0.1.11"
 colored = "2.0.0"
 derive_more = { version = "0.99.17", default-features = false, features = ["constructor"] }
 directories = "4.0.1"
