@@ -67,7 +67,6 @@ This required option specifies which videos to archive, you must have one and on
 
 #### [OPTIONS]
 These are optional flags that affect how the program works.
-- `-g <SHELL>`, `--generate <SHELL>`: [Shell Complete](#install-shell-autocompletion-optional) [does not require `<TYPE>` or `<INPUT>`]
 - `-h`, `--help`: Print help information [does not require `<TYPE>` or `<INPUT>`]
 - `-l`, `--logging`: Enable logging of external commands, e.g., `yt-dlp` will create `<id>.video.log` with its output
 - `-N <THREADS>`, `--threads <THREADS>`: Number of video pieces to download simultaneously [default: 1]
@@ -108,39 +107,15 @@ Copy the executable into a directory within your `$PATH` (e.g., `~/.local/bin/`,
 
 #### Install shell autocompletion [Optional]
   
-`archiver --generate=<SHELL>` will output a completion script for the specified shell.
-The available shells are `bash`, `elvish`, `fig`, `fish`, `powershell`, and `zsh`.
-
-<details>
-  <summary>Examples</summary>
-
-  Here are some examples of how to install the scripts in a few shell. These are not the only ways to do so, consult with your shell's and distro's documentation, as well as your personal preference. Some shells might need to be restarted for the autocompletions to take effect.
-
-  #### Bash
-  ```
-  archiver --generate=bash | sudo tee /etc/bash_completion.d/archiver
-  ```
-  #### Fish
-  ```
-  archiver --generate=fish > ~/.config/fish/completions/archiver.fish
-  ```
-  #### PowerShell
-  ```
-  archiver --generate=powershell >> $profile
-  ```
-  #### Zsh
-  ```
-  archiver --generate=zsh | sudo tee /usr/local/share/zsh/site-functions/_archiver
-  ```
-</details>
+The `build.rs` script will generate a man file (`archiver.1`) and completion scripts for all supported shells.
+Supported shells are `bash`, `elvish`, `fig`, `fish`, `powershell`, and `zsh`.
 
 ## Runtime Dependencies
 #### These programs need to be installed and in your path for every feature to work.
 * [`yt-dlp`](https://github.com/yt-dlp/yt-dlp): Downloads the video files.
-* [`TwitchChatDownloader`](https://github.com/PetterKraabol/Twitch-Chat-Downloader): Downloads chat for Twitch VODs and Highlights.
 * [`brotli`](https://github.com/google/brotli): Compresses Twitch VODs and Highlights chat files.
 * [`chat_downloader`](https://github.com/xenova/chat-downloader): Downloads chat for YouTube videos.
-* ~~[`TwitchDownloaderCLI`](https://github.com/lay295/TwitchDownloader): Downloads chat for Twitch Clips.~~ Currently not working, so Clips will not have their chats downloaded.
+* [`TwitchDownloaderCLI`](https://github.com/lay295/TwitchDownloader): Downloads chat for Twitch Clips.
 
 ## Build Dependencies
 #### These programs need to be installed and in your path to compile this project.
