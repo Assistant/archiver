@@ -23,6 +23,11 @@ terminal-spinners = "0.3.2"
 toml = "0.5.9"
 which = "4.3.0"
 
+[build-dependencies]
+clap = { version = "3.2.14", features = ["derive"] }
+clap_complete_command = "0.3.4"
+clap_mangen = "0.1.11"
+
 [profile.release]
 strip = true
 lto = true

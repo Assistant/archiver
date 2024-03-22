@@ -5,6 +5,7 @@ use derive_more::Constructor;
 use regex::Regex;
 use reqwest::blocking::Client;
 mod args;
+mod cli;
 use lazy_static::lazy_static;
 mod config;
 pub(super) mod external;

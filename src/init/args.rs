@@ -1,99 +1,6 @@
 use super::{Info, VideoType, Videos};
-use clap::CommandFactory;
-use clap::{ArgGroup, Parser};
+use clap::Parser;
 use derive_more::Constructor;
-use std::{io::stdout, process::exit};
-
-#[allow(clippy::struct_excessive_bools)]
-#[derive(Parser)]
-#[clap(
-    author,
-    version,
-    about,
-    override_usage = "archiver [OPTIONS] <TYPE> <INPUT>",
-    arg_required_else_help = true
-)]
-#[clap(group(
-  ArgGroup::new("type")
-    .requires("input")
-    .conflicts_with("generate")
-    .args(&["vods", "highlights", "clips", "youtube"])
-))]
-#[clap(group(
-  ArgGroup::new("input")
-    .requires("type")
-    .conflicts_with("generate")
-    .args(&["channel", "videos"])
-))]
-struct Cli {
-    /// Twitch VODs
-    #[clap(long, help_heading = "TYPE")]
-    vods: bool,
-
-    /// Twitch Highlights
-    #[clap(long, help_heading = "TYPE")]
-    highlights: bool,
-
-    /// Twitch Clips
-    #[clap(long, help_heading = "TYPE")]
-    clips: bool,
-
-    /// YouTube
-    #[clap(long, help_heading = "TYPE")]
-    youtube: bool,
-
-    /// Target channel (YouTube or Twitch)
-    #[clap(long, short, help_heading = "INPUT")]
-    channel: Option<String>,
-
-    /// Target video (YouTube or Twitch)
-    #[clap(help_heading = "INPUT")]
-    videos: Option<String>,
-
-    /// Number of video pieces to download simultaneously
-    #[clap(long, short = 'N', default_value = "1")]
-    threads: u16,
-
-    /// How long ago to start searching for clips, refer to docs for format
-    #[clap(
-        short,
-        long,
-        default_value = "1week",
-        help_heading = "CLIPS OPTIONS",
-        value_name = "DURATION"
-    )]
-    range: String,
-
-    /// Time interval to search for clips, shorter intervals will result in more requests but better results
-    #[clap(
-        short,
-        long,
-        default_value = "1hour",
-        help_heading = "CLIPS OPTIONS",
-        value_name = "DURATION"
-    )]
-    interval: String,
-
-    /// Enable logging of external commands into files
-    #[clap(short, long, takes_value = false)]
-    logging: bool,
-
-    /// Increase output verbosity
-    #[clap(short, long, action = clap::ArgAction::Count, group = "output")]
-    verbose: u8,
-
-    /// Hide output, use twice to hide errors as well
-    #[clap(short, long, action = clap::ArgAction::Count, group = "output")]
-    silent: u8,
-
-    /// Generate shell completion script
-    #[clap(short, long, arg_enum, value_name = "SHELL", exclusive = true)]
-    generate: Option<clap_complete_command::Shell>,
-
-    /// Generate man page
-    #[clap(short, long, exclusive = true)]
-    man: bool,
-}
 
 #[derive(Debug, Constructor)]
 pub(super) struct Args {
@@ -107,16 +14,7 @@ pub(super) struct Args {
 }
 
 pub(super) fn parse() -> Args {
-    let cli = Cli::parse();
-    if let Some(shell) = cli.generate {
-        shell.generate(&mut Cli::command(), &mut stdout());
-        exit(0);
-    }
-    if cli.man {
-        let man = clap_mangen::Man::new(Cli::command());
-        _ = man.render(&mut stdout());
-        exit(0);
-    }
+    let cli = crate::init::cli::Cli::parse();
 
     let video_type: VideoType = match (cli.vods, cli.highlights, cli.clips, cli.youtube) {
         (true, _, _, _) => VideoType::Vod,
