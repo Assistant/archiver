@@ -25,7 +25,7 @@ checksum = "c91f1f46651137be86f3a2b9a8359f9ab421d04d941c62b5982e1ca21113adf9"
 
 [[package]]
 name = "archiver"
-version = "1.0.8"
+version = "1.0.9"
 dependencies = [
  "chrono",
  "clap",
