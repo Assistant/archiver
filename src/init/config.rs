@@ -4,13 +4,10 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 pub(super) fn get(verbosity: i16, spinner: &mut Spinner) -> Result<Config, Error> {
-    let project_dirs = match ProjectDirs::from("moe", "Assistant", "archiver") {
-        Some(dirs) => dirs,
-        None => {
-            return Err(Error::Config(
-                "Could not find project directory".to_string(),
-            ))
-        }
+    let Some(project_dirs) = ProjectDirs::from("moe", "Assistant", "archiver") else {
+        return Err(Error::Config(
+            "Could not find project directory".to_string(),
+        ));
     };
 
     if !project_dirs.config_dir().exists() {

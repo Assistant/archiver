@@ -183,7 +183,7 @@ pub(super) fn regex_helper(
     context: &mut Context,
     regexen: &[&Regex],
 ) -> Result<String, Error> {
-    for regex in regexen.iter() {
+    for regex in regexen {
         if let Some(captures) = regex.captures(text) {
             if let Some(capture) = captures.get(1) {
                 message(
