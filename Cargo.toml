@@ -1,6 +1,8 @@
 [package]
 name = "archiver"
 version = "1.0.9"
+description = "Tool to easily archive streams with chat and metadata."
+homepage = "https://github.com/Assistant/archiver"
 authors = ["Assistant"]
 edition = "2021"
 
