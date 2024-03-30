@@ -111,8 +111,12 @@ fn get_info<T: VideoInfo>(mut ids: Vec<String>, context: &mut Context) -> Result
 }
 
 fn past_video(video: &Value) -> bool {
-    let Some(snippet) = video.get("snippet") else { return false };
-    let Some(live) = snippet.get("liveBroadcastContent") else { return false };
+    let Some(snippet) = video.get("snippet") else {
+        return false;
+    };
+    let Some(live) = snippet.get("liveBroadcastContent") else {
+        return false;
+    };
     live.is_string()
         && if let Some(value) = live.as_str() {
             value == "none"
