@@ -1,7 +1,7 @@
 {
   description = "Tool to easily archive streams with chat and metadata.";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/staging-next";
 
   outputs = { self, nixpkgs }:
     let
