@@ -7,10 +7,10 @@
 , twitch_downloader
 , chat_downloader
 }:
-let cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+let manifest = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).package;
 in rustPlatform.buildRustPackage rec {
-  pname = cargoToml.package.name;
-  version = cargoToml.package.version;
+  pname = manifest.name;
+  version = manifest.version;
 
   src = ./.;
 
@@ -35,8 +35,8 @@ in rustPlatform.buildRustPackage rec {
   '';
 
   meta = with lib; {
-    description = cargoToml.package.description;
-    homepage = cargoToml.package.homepage;
+    description = manifest.description;
+    homepage = manifest.homepage;
     changelog = "https://github.com/Assistant/archiver/blob/master/changelogs/v${version}.md";
     license = licenses.mit;
   };
