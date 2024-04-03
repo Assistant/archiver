@@ -27,6 +27,11 @@ in rustPlatform.buildRustPackage rec {
       --bash $assets_dir/archiver.bash \
       --fish $assets_dir/archiver.fish \
       --zsh $assets_dir/_archiver
+    extra=$out/share/extra_completions
+    mkdir -p $extra/elvish  $extra/fig $extra/powershell
+    cp $assets_dir/archiver.elv $out/share/extra_completions/elvish
+    cp $assets_dir/archiver.ts $out/share/extra_completions/fig
+    cp $assets_dir/_archiver.ps1 $out/share/extra_completions/powershell
   '';
 
   postFixup = ''
