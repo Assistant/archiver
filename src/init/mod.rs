@@ -72,7 +72,6 @@ pub(super) fn run() -> Result<Input, Error> {
         token: token_package.token,
         client: token_package.client,
         client_id: token_package.client_id,
-        // client_secret: token_package.client_secret,
         downloader: args.video_type,
         threads: args.threads,
         missing,
@@ -81,7 +80,6 @@ pub(super) fn run() -> Result<Input, Error> {
         logging: args.logging,
         spinner,
     };
-    // external::init(&mut context);
     Ok(Input::new(args.videos, context))
 }
 
@@ -111,7 +109,6 @@ pub(super) struct Context {
     pub(super) token: String,
     pub(super) client: Client,
     pub(super) client_id: String,
-    // client_secret: String,
     pub(super) downloader: VideoType,
     pub(super) threads: u16,
     pub(super) missing: Vec<External>,

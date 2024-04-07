@@ -120,31 +120,30 @@ pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     if chat.exists() || json.exists() {
         return Err(Error::AlreadyExists);
     }
-    // if context.missing.contains(&External::Tcd) {
-    //   return Err(Error::MissingProgram(External::Tcd));
-    // }
-    if context.missing.contains(&External::TdCli) {
-        return Err(Error::MissingProgram(External::TdCli));
+    if context.missing.contains(&External::Tcd) {
+        return Err(Error::MissingProgram(External::Tcd));
     }
     let (log, err_log) = loggers(&format!("{id}.chat"), context.logging);
-    // let status = Command::new(External::Tcd.command())
-    //   .args(&["-f", "ssa", "-v", id])
-    let status = Command::new(External::TdCli.command())
-        .args(["chatdownload", "-u", id, "-o", &format!("{id}.chat.json")])
+    let status = Command::new(External::Tcd.command())
+        .args([
+            "-f",
+            "ssa",
+            "-v",
+            id,
+            "--filename-format",
+            "./{video_id}.{format}",
+        ])
         .stdout(log)
         .stderr(err_log)
         .status()?;
     if !status.success() {
-        // return Err(Error::CommandFailed(External::Tcd));
-        return Err(Error::CommandFailed(External::TdCli));
+        return Err(Error::CommandFailed(External::Tcd));
     }
     Ok(())
 }
 
 #[allow(unreachable_code, unused)]
 pub(super) fn process_chat(id: &str, context: &mut Context) -> Result<(), Error> {
-    return Err(Error::Expected);
-
     let chat_string = format!("{id}.ssa");
     let chat = Path::new(&chat_string);
     let compressed_string = format!("{id}.ssa.br");

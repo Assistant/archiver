@@ -15,7 +15,6 @@ pub(super) struct TokenPackage {
     pub(super) token: String,
     pub(super) client: Client,
     pub(super) client_id: String,
-    // pub(super) client_secret: String,
 }
 
 pub(super) fn get(video_type: &VideoType, config: &Config) -> Result<TokenPackage, Error> {
@@ -40,12 +39,7 @@ fn get_twitch_token(config: &Config) -> Result<TokenPackage, Error> {
                 if json.access_token.is_empty() {
                     return Err(Error::Token("No Twitch access token found.".to_string()));
                 }
-                Ok(TokenPackage::new(
-                    json.access_token,
-                    client,
-                    client_id,
-                    // client_secret,
-                ))
+                Ok(TokenPackage::new(json.access_token, client, client_id))
             }
             Err(_) => Err(Error::Token(
                 "Could not parse Twitch token response.".to_string(),
@@ -64,7 +58,6 @@ fn get_youtube_token(config: &Config) -> Result<TokenPackage, Error> {
         config.youtube_key.clone(),
         client,
         String::new(),
-        // String::new(),
     ))
 }
 
