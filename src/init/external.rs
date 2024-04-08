@@ -5,7 +5,9 @@ use which::which;
 
 pub(super) fn find_missing(video_type: &VideoType) -> Vec<External> {
     let commands = match video_type {
-        VideoType::Vod | VideoType::Highlight => vec![External::Tcd, External::YtDlp],
+        VideoType::Vod | VideoType::Highlight => {
+            vec![External::Tcd, External::YtDlp, External::TdCli]
+        }
         VideoType::Clip => vec![External::TdCli, External::YtDlp],
         VideoType::YouTube => vec![External::Cd, External::YtDlp],
     };

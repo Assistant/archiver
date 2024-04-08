@@ -115,27 +115,55 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
 pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     let chat_string = format!("{id}.ssa");
     let chat = Path::new(&chat_string);
-    if chat.exists() {
+    let json_string = format!("{id}.chat.json");
+    let json = Path::new(&json_string);
+    if chat.exists() && json.exists() {
         return Err(Error::AlreadyExists);
     }
-    if context.missing.contains(&External::Tcd) {
+
+    let mut ssa_status = true;
+    let mut json_status = true;
+    let missing_tcd = context.missing.contains(&External::Tcd);
+    let missing_tdcli = context.missing.contains(&External::TdCli);
+
+    if !missing_tcd {
+        let (log, err_log) = loggers(&format!("{id}.chat"), context.logging);
+        ssa_status = Command::new(External::Tcd.command())
+            .args([
+                "-f",
+                "ssa",
+                "-v",
+                id,
+                "--filename-format",
+                "./{video_id}.{format}",
+            ])
+            .stdout(log)
+            .stderr(err_log)
+            .status()?
+            .success();
+    }
+
+    if !missing_tdcli {
+        let (log, err_log) = loggers(&format!("{id}.json.chat"), context.logging);
+        json_status = Command::new(External::TdCli.command())
+            .args(["chatdownload", "-u", id, "-o", &format!("{id}.chat.json")])
+            .stdout(log)
+            .stderr(err_log)
+            .status()?
+            .success();
+    }
+
+    if missing_tcd {
         return Err(Error::MissingProgram(External::Tcd));
     }
-    let (log, err_log) = loggers(&format!("{id}.chat"), context.logging);
-    let status = Command::new(External::Tcd.command())
-        .args([
-            "-f",
-            "ssa",
-            "-v",
-            id,
-            "--filename-format",
-            "./{video_id}.{format}",
-        ])
-        .stdout(log)
-        .stderr(err_log)
-        .status()?;
-    if !status.success() {
+    if !ssa_status {
         return Err(Error::CommandFailed(External::Tcd));
+    }
+    if missing_tdcli {
+        return Err(Error::MissingProgram(External::TdCli));
+    }
+    if !json_status {
+        return Err(Error::CommandFailed(External::TdCli));
     }
     Ok(())
 }
