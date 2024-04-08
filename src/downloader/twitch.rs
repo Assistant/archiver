@@ -114,10 +114,8 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
 
 pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     let chat_string = format!("{id}.ssa");
-    let json_string = format!("{id}.chat.json");
     let chat = Path::new(&chat_string);
-    let json = Path::new(&json_string);
-    if chat.exists() || json.exists() {
+    if chat.exists() {
         return Err(Error::AlreadyExists);
     }
     if context.missing.contains(&External::Tcd) {
@@ -142,7 +140,6 @@ pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     Ok(())
 }
 
-#[allow(unreachable_code, unused)]
 pub(super) fn process_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     let chat_string = format!("{id}.ssa");
     let chat = Path::new(&chat_string);
