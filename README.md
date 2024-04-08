@@ -113,6 +113,7 @@ Supported shells are `bash`, `elvish`, `fig`, `fish`, `powershell`, and `zsh`.
 ## Runtime Dependencies
 #### These programs need to be installed and in your path for every feature to work.
 * [`yt-dlp`](https://github.com/yt-dlp/yt-dlp): Downloads the video files.
+* [`TwitchChatDownloader`](https://github.com/TheDrHax/Twitch-Chat-Downloader): Downloads chat for Twitch VODs and Highlights.
 * [`brotli`](https://github.com/google/brotli): Compresses Twitch VODs and Highlights chat files.
 * [`chat_downloader`](https://github.com/xenova/chat-downloader): Downloads chat for YouTube videos.
 * [`TwitchDownloaderCLI`](https://github.com/lay295/TwitchDownloader): Downloads chat for Twitch Clips.
