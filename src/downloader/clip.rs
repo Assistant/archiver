@@ -5,24 +5,23 @@ use crate::init::external::External;
 use crate::Error;
 use chrono::{SecondsFormat, Utc};
 use colored::Color;
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use std::path::Path;
 use std::process::Command;
+use std::sync::LazyLock;
 
-lazy_static! {
-    static ref ID_REGEX: Regex = unsafe { Regex::new(r"^([A-z0-9-]+)$").unwrap_unchecked() };
-    static ref URL_REGEX: Regex = unsafe {
-        Regex::new(r"^(?:https://)?(?:clips\.|www\.)?twitch\.tv/([A-z0-9-]+)(?:\?.*)?$")
-            .unwrap_unchecked()
-    };
-    static ref CHANNEL_REGEX: Regex = unsafe {
-        Regex::new(r"^(?:https://)?(?:www\.)?twitch\.tv/(?:[^/]+)/clip/([A-z0-9-]+)(?:\?.*)?$")
-            .unwrap_unchecked()
-    };
-}
+static ID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"^([A-z0-9-]+)$").unwrap_unchecked() });
+static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^(?:https://)?(?:clips\.|www\.)?twitch\.tv/([A-z0-9-]+)(?:\?.*)?$")
+        .unwrap_unchecked()
+});
+static CHANNEL_REGEX: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^(?:https://)?(?:www\.)?twitch\.tv/(?:[^/]+)/clip/([A-z0-9-]+)(?:\?.*)?$")
+        .unwrap_unchecked()
+});
 
 pub(super) fn download<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
     common::download(

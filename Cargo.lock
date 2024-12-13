@@ -34,7 +34,6 @@ dependencies = [
  "colored",
  "derive_more",
  "directories",
- "lazy_static",
  "regex",
  "reqwest",
  "serde",

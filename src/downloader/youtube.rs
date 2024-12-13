@@ -1,34 +1,30 @@
 use super::{twitch::Video, utils::loggers, Context};
-use crate::{
-    downloader::common,
-    init::external::External,
-    utils::{colorize, message, sanitize, VideoInfo},
-    Error,
-};
+use crate::downloader::common;
+use crate::init::external::External;
+use crate::utils::{colorize, message, sanitize, VideoInfo};
+use crate::Error;
 use colored::Color;
-use lazy_static::lazy_static;
 use regex::Regex;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{
-    cmp::min,
-    fmt::{self, Display, Formatter},
-    path::Path,
-    process::Command,
-};
+use std::cmp::min;
+use std::fmt::{self, Display, Formatter};
+use std::path::Path;
+use std::process::Command;
+use std::sync::LazyLock;
 
-lazy_static! {
-    static ref ID_REGEX: Regex = unsafe { Regex::new(r"^([0-9a-zA-Z_-]{11})$").unwrap_unchecked() };
-    static ref URL_REGEX: Regex = unsafe {
-        Regex::new(r"^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com(?:/embed/|/v/|/watch))(?:(?:&|\?)[^&]+)*(?:(?:&|\?)v=)?([0-9a-zA-Z_-]{11})(?:(?:&|\?)[^&]+)*(?:#.*)?$").unwrap_unchecked()
-    };
-    static ref CHAN_REGEX: Regex = unsafe { Regex::new(r"^([^?/\& *+]+)$").unwrap_unchecked() };
-    static ref CHAN_URL_REGEX: Regex = unsafe {
-        Regex::new(r"^(?:https?://)?(?:www\.)?youtube.com/(?:channel/|c/|user/|)([^?/\& *+]+)")
-            .unwrap_unchecked()
-    };
-}
+static ID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"^([0-9a-zA-Z_-]{11})$").unwrap_unchecked() });
+static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com(?:/embed/|/v/|/watch))(?:(?:&|\?)[^&]+)*(?:(?:&|\?)v=)?([0-9a-zA-Z_-]{11})(?:(?:&|\?)[^&]+)*(?:#.*)?$").unwrap_unchecked()
+});
+static CHAN_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"^([^?/\& *+]+)$").unwrap_unchecked() });
+static CHAN_URL_REGEX: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^(?:https?://)?(?:www\.)?youtube.com/(?:channel/|c/|user/|)([^?/\& *+]+)")
+        .unwrap_unchecked()
+});
 
 pub(super) fn download<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
     common::download(

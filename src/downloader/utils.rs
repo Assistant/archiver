@@ -1,21 +1,19 @@
 use super::{twitch::Video, Context};
 use crate::Error;
 use colored::{Color, Colorize};
-use lazy_static::lazy_static;
 use regex::{Captures, Regex};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::{
-    fmt::{self, Debug, Display, Formatter},
-    fs::{File, OpenOptions},
-    io::Write,
-    path::Path,
-    process::Stdio,
-};
+use std::fmt::{self, Debug, Display, Formatter};
+use std::fs::{File, OpenOptions};
+use std::io::Write;
+use std::path::Path;
+use std::process::Stdio;
+use std::sync::LazyLock;
 use terminal_spinners::{SpinnerBuilder, SpinnerHandle, DOTS2};
-lazy_static! {
-    static ref SANITIZE: Regex = unsafe { Regex::new(r"[0-9]+(?::[0-9]+)+").unwrap_unchecked() };
-}
+
+static SANITIZE: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"[0-9]+(?::[0-9]+)+").unwrap_unchecked() });
 
 pub(crate) trait VideoInfo: Debug + Display + Serialize + DeserializeOwned {
     fn title(&self) -> &str;

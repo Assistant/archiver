@@ -4,18 +4,18 @@ use chrono::Duration;
 use derive_more::Constructor;
 use regex::Regex;
 use reqwest::blocking::Client;
+use std::sync::LazyLock;
 mod args;
 mod cli;
-use lazy_static::lazy_static;
 mod config;
 pub(super) mod external;
 mod token;
 
-lazy_static! {
-    static ref SPLIT: Regex = unsafe { Regex::new(r"([0-9]+[a-zA-Z]+)").unwrap_unchecked() };
-    static ref PAIR: Regex = unsafe { Regex::new(r"([0-9]+)([a-zA-Z]+)").unwrap_unchecked() };
-    static ref ZERO: Duration = Duration::zero();
-}
+static SPLIT: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"([0-9]+[a-zA-Z]+)").unwrap_unchecked() });
+static PAIR: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"([0-9]+)([a-zA-Z]+)").unwrap_unchecked() });
+static ZERO: LazyLock<Duration> = LazyLock::new(|| Duration::zero());
 
 #[derive(Debug, Constructor)]
 pub(super) struct Input {

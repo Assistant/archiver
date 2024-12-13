@@ -6,22 +6,20 @@ use crate::init::external::External;
 use crate::Error;
 use colored::Color;
 use derive_more::Constructor;
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::path::Path;
 use std::process::Command;
+use std::sync::LazyLock;
 
-lazy_static! {
-    static ref RE: Regex = unsafe { Regex::new(r"^[0-9]+$").unwrap_unchecked() };
-    static ref CHANNEL: Regex = unsafe {
-        Regex::new(r"^(?:https?://)?(?:www.)?(?:twitch.tv/)?(?:[^/]+/)?([^?/\& *+]+)")
-            .unwrap_unchecked()
-    };
-}
-
+static RE: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"^[0-9]+$").unwrap_unchecked() });
+static CHANNEL: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^(?:https?://)?(?:www.)?(?:twitch.tv/)?(?:[^/]+/)?([^?/\& *+]+)")
+        .unwrap_unchecked()
+});
 const PROCESSING: &str = "https://vod-secure.twitch.tv/_404/404_processing_%{width}x%{height}.png";
 
 pub(super) fn id2info<T: VideoInfo>(

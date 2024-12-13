@@ -1,16 +1,14 @@
 use super::utils::VideoInfo;
 use super::{common, twitch, Context};
 use crate::Error;
-use lazy_static::lazy_static;
 use regex::Regex;
+use std::sync::LazyLock;
 
-lazy_static! {
-    static ref ID_REGEX: Regex = unsafe { Regex::new(r"^([0-9]+)$").unwrap_unchecked() };
-    static ref URL_REGEX: Regex = unsafe {
-        Regex::new(r"^(?:https://)?(?:www\.)?twitch\.tv/videos/([0-9]+)(?:\?.*)?$")
-            .unwrap_unchecked()
-    };
-}
+static ID_REGEX: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"^([0-9]+)$").unwrap_unchecked() });
+static URL_REGEX: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^(?:https://)?(?:www\.)?twitch\.tv/videos/([0-9]+)(?:\?.*)?$").unwrap_unchecked()
+});
 
 pub(super) fn download<T: VideoInfo>(info: &T, context: &mut Context) -> Result<(), Error> {
     common::download(

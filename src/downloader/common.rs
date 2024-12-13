@@ -1,12 +1,10 @@
 use super::utils::colorize;
-use crate::{
-    init::{Context, VideoType},
-    utils::{
-        download_file, error_msg, good_msg, message, sanitize, split_videos, warn_msg, write_file,
-        VideoInfo,
-    },
-    Error,
+use crate::init::{Context, VideoType};
+use crate::utils::{
+    download_file, error_msg, good_msg, message, sanitize, split_videos, warn_msg, write_file,
+    VideoInfo,
 };
+use crate::Error;
 use colored::Color;
 use regex::Regex;
 use std::path::Path;
