@@ -22,6 +22,8 @@ lazy_static! {
     };
 }
 
+const PROCESSING: &str = "https://vod-secure.twitch.tv/_404/404_processing_%{width}x%{height}.png";
+
 pub(super) fn id2info<T: VideoInfo>(
     ids: &[String],
     r#type: &str,
@@ -102,7 +104,9 @@ pub(super) fn get_channel_ids<T: VideoInfo>(
             }
         };
         for video in data.data {
-            videos.push(video);
+            if video.thumbnail_url() != PROCESSING {
+                videos.push(video);
+            }
         }
         match data.pagination.cursor {
             Some(cursor) if cursor != after || after.is_empty() => after = cursor,
