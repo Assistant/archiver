@@ -57,7 +57,7 @@ jobs:
           RUSTFLAGS: ${{ matrix.rustflags }}
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}-archiver
           path: target/${{ matrix.target }}/release/archiver${{ matrix.ext }}
@@ -78,7 +78,7 @@ jobs:
         run: lipo -create -output archiver x86_64/archiver aarch64/archiver
 
       - name: Upload
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: universal-apple-archiver
           path: archiver
