@@ -46,6 +46,10 @@ pub(crate) struct Cli {
     #[clap(help_heading = "INPUT")]
     pub(crate) videos: Option<String>,
 
+    /// Skip video download
+    #[clap(long, short = 'K', takes_value = false)]
+    pub(crate) skip_video: bool,
+
     /// Number of video pieces to download simultaneously
     #[clap(long, short = 'N', default_value = "1")]
     pub(crate) threads: u16,

@@ -77,21 +77,23 @@ pub(super) fn download<T: VideoInfo>(
         &format!("{id}{chat_ext}.br"),
     );
 
-    let spinner_text = format!(" Downloading {video_title}");
-    context.spinner.create(&spinner_text);
-    let result = get_video(info, context);
-    context.spinner.end();
-    parse_result(&result, context, "video", "Download", &video_title);
+    if !context.skip_video {
+        let spinner_text = format!(" Downloading {video_title}");
+        context.spinner.create(&spinner_text);
+        let result = get_video(info, context);
+        context.spinner.end();
+        parse_result(&result, context, "video", "Download", &video_title);
 
-    message(
-        &colorize(
-            None,
-            &format!("Finished downloading {}", info.title()),
-            Color::BrightGreen,
-        ),
-        context,
-        1,
-    );
+        message(
+            &colorize(
+                None,
+                &format!("Finished downloading {}", info.title()),
+                Color::BrightGreen,
+            ),
+            context,
+            1,
+        );
+    }
     Ok(())
 }
 
