@@ -68,6 +68,7 @@ This required option specifies which videos to archive, you must have one and on
 #### [OPTIONS]
 These are optional flags that affect how the program works.
 - `-h`, `--help`: Print help information [does not require `<TYPE>` or `<INPUT>`]
+- `-K`, `--skip-video`: Skip video download
 - `-l`, `--logging`: Enable logging of external commands, e.g., `yt-dlp` will create `<id>.video.log` with its output
 - `-N <THREADS>`, `--threads <THREADS>`: Number of video pieces to download simultaneously [default: 1]
 - `-s`, `--silent`: Suppress output, using it twice will suppress errors too
