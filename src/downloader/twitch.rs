@@ -128,7 +128,7 @@ pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
     let missing_tcd = context.missing.contains(&External::Tcd);
     let missing_tdcli = context.missing.contains(&External::TdCli);
 
-    if !missing_tcd {
+    if !missing_tcd && !chat.exists() {
         let (log, err_log) = loggers(&format!("{id}.chat"), context.logging);
         ssa_status = Command::new(External::Tcd.command())
             .args([
@@ -145,7 +145,7 @@ pub(super) fn get_chat(id: &str, context: &mut Context) -> Result<(), Error> {
             .success();
     }
 
-    if !missing_tdcli {
+    if !missing_tdcli && !json.exists() {
         let (log, err_log) = loggers(&format!("{id}.json.chat"), context.logging);
         json_status = Command::new(External::TdCli.command())
             .args(["chatdownload", "-u", id, "-o", &format!("{id}.chat.json")])
