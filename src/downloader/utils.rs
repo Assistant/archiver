@@ -1,9 +1,10 @@
 use super::{twitch::Video, Context};
 use crate::Error;
 use colored::{Color, Colorize};
-use regex::{Captures, Regex};
+use fancy_regex::{Captures, Regex};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::collections::HashMap;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -11,9 +12,39 @@ use std::path::Path;
 use std::process::Stdio;
 use std::sync::LazyLock;
 use terminal_spinners::{SpinnerBuilder, SpinnerHandle, DOTS2};
+use unicode_general_category::{get_general_category, GeneralCategory};
+use unicode_normalization::UnicodeNormalization;
 
-static SANITIZE: LazyLock<Regex> =
+static TIMESTAMP: LazyLock<Regex> =
     LazyLock::new(|| unsafe { Regex::new(r"[0-9]+(?::[0-9]+)+").unwrap_unchecked() });
+static DEDUP: LazyLock<Regex> =
+    LazyLock::new(|| unsafe { Regex::new(r"(\0.)(?:(?=\1)..)+").unwrap_unchecked() });
+static STRIP: LazyLock<Regex> = LazyLock::new(|| unsafe {
+    Regex::new(r"^\0.(?:\0.|[ _-])*|(?:\0.|[ _-])*$").unwrap_unchecked()
+});
+static ACCENTS: LazyLock<HashMap<char, &str>> = LazyLock::new(|| {
+    let source = "ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ";
+    let replacements = [
+        "A", "A", "A", "A", "A", "A", "AE", "C", "E", "E", "E", "E", "I", "I", "I", "I", "D",
+        "N", "O", "O", "O", "O", "O", "O", "O", "OE", "U", "U", "U", "U", "U", "Y", "TH", "ss",
+        "a", "a", "a", "a", "a", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i", "d", 
+        "n", "o", "o", "o", "o", "o", "o", "o", "oe", "u", "u", "u", "u", "u", "y", "th", "y",
+    ];
+    source.chars().zip(replacements).collect()
+});
+static SYMBOLS: LazyLock<HashMap<char, &str>> = LazyLock::new(|| {
+    HashMap::from([
+        ('"', "＂"),
+        ('*', "＊"),
+        (':', "："),
+        ('<', "＜"),
+        ('>', "＞"),
+        ('?', "？"),
+        ('|', "｜"),
+        ('/', "⧸"),
+        ('\\', "⧹"),
+    ])
+});
 
 pub(crate) trait VideoInfo: Debug + Display + Serialize + DeserializeOwned {
     fn title(&self) -> &str;
@@ -122,83 +153,67 @@ pub(super) fn download_file(
     write_file(path, &bytes)
 }
 
+fn is_cm(c: char) -> bool {
+    use GeneralCategory::*;
+    match get_general_category(c) {
+        Control | Format | Surrogate | PrivateUse | SpacingMark | EnclosingMark
+        | NonspacingMark => true,
+        _ => false,
+    }
+}
+
+fn replace_insane(character: char, restrict: bool) -> String {
+    let string = match character {
+        c if restrict && ACCENTS.contains_key(&c) => ACCENTS.get(&c).unwrap(),
+        c if !restrict && c == '\n' => "\0 ",
+        c if !restrict && SYMBOLS.contains_key(&c) => SYMBOLS.get(&c).unwrap(),
+        '?' | '\0'..='\u{1f}' | '\u{7f}' => "",
+        '"' if restrict => "",
+        '"' => "'",
+        ':' if restrict => "\0_\0-",
+        ':' => "\0 \0-",
+        c if "\\/|*<>".contains(c) => "\0_",
+        c if restrict && ("!&'()[]{}&;1^,#".contains(c) || c == ' ') => "\0_",
+        c if restrict && c > '\u{7f}' && is_cm(c) => "",
+        c if restrict && c > '\u{7f}' => "\0_",
+
+        c => &c.to_string(),
+    };
+    string.to_owned()
+}
+
 pub(super) fn sanitize(data: String, restricted: bool) -> String {
-    let mut data = data;
-    data = SANITIZE
+    let mut data = if restricted {
+        data.nfkc().to_string()
+    } else {
+        data
+    };
+    data = TIMESTAMP
         .replace_all(&data, |r: &Captures| {
             r.get(0).map_or("", |x| x.as_str()).replace(':', "_")
         })
         .to_string();
     data = data
         .chars()
-        .filter(|c| match c {
-            '?' | '\0'..='\u{1f}' | '\u{7f}' => false,
-            '"' if restricted => false,
-            _ => true,
-        })
-        .map(|c| match c {
-            '\\' | '/' | '|' | '*' | '<' | '>' => '_',
-            '\n' if !restricted => ' ',
-            '!' | '&' | '\'' | '(' | ')' | '[' | ']' | '{' | '}' | '$' | ';' | '1' | '^' | '#'
-            | ' '
-                if restricted =>
-            {
-                '_'
-            }
-            '"' => '\'',
-            _ if c.is_whitespace() && restricted => '_',
-            'Â' | 'Ã' | 'Ä' | 'À' | 'Á' | 'Å' if restricted => 'A',
-            'â' | 'ã' | 'ä' | 'à' | 'á' | 'å' if restricted => 'a',
-            'Ç' if restricted => 'C',
-            'ç' if restricted => 'c',
-            'È' | 'É' | 'Ê' | 'Ë' if restricted => 'E',
-            'è' | 'é' | 'ê' | 'ë' if restricted => 'e',
-            'Ì' | 'Í' | 'Î' | 'Ï' if restricted => 'I',
-            'ì' | 'í' | 'î' | 'ï' if restricted => 'i',
-            'Ð' if restricted => 'D',
-            'ð' if restricted => 'd',
-            'Ñ' if restricted => 'N',
-            'ñ' if restricted => 'n',
-            'Ò' | 'Ó' | 'Ô' | 'Õ' | 'Ö' | 'Ø' if restricted => 'O',
-            'ò' | 'ó' | 'ô' | 'õ' | 'ö' | 'ø' if restricted => 'o',
-            'Ù' | 'Ú' | 'Û' | 'Ü' if restricted => 'U',
-            'ù' | 'ú' | 'û' | 'ü' if restricted => 'u',
-            'Ý' if restricted => 'Y',
-            'ý' if restricted => 'y',
-            _ if restricted && c > '\u{7f}' => '_',
-            _ => c,
-        })
-        .collect::<String>();
-    if restricted {
-        data = data.replace('Æ', "AE");
-        data = data.replace('æ', "ae");
-        data = data.replace('Œ', "OE");
-        data = data.replace('œ', "oe");
-        data = data.replace('Þ', "TH");
-        data = data.replace('þ', "th");
-        data = data.replace('ß', "ss");
-        data = data.replace(':', "_-");
-    } else {
-        data = data.replace(':', " -");
-    }
+        .map(|c| replace_insane(c, restricted))
+        .collect();
+
+    data = DEDUP.replace_all(&data, "$1").to_string();
+    data = STRIP.replace_all(&data, "").to_string();
+
+    data = data.replace('\0', "");
+
     while data.contains("__") {
         data = data.replace("__", "_");
     }
-    if let Some(result) = data.strip_prefix('_') {
-        data = result.to_string();
-    }
-    if let Some(result) = data.strip_suffix('_') {
-        data = result.to_string();
-    }
+    data = data.trim_matches('_').to_string();
     if restricted && data.starts_with("-_") {
         data = data[2..].to_string();
     }
     if data.starts_with('-') {
         data = format!("_{}", &data[1..]);
     }
-    if let Some(result) = data.strip_prefix('.') {
-        data = result.to_string();
-    }
+    data = data.trim_start_matches('.').to_string();
     if data.is_empty() {
         "_".to_string()
     } else {

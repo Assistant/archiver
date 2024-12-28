@@ -1,7 +1,7 @@
 use super::utils::VideoInfo;
 use super::{common, twitch, Context};
 use crate::Error;
-use regex::Regex;
+use fancy_regex::Regex;
 use std::sync::LazyLock;
 
 static ID_REGEX: LazyLock<Regex> =

@@ -4,7 +4,7 @@ use crate::init::external::External;
 use crate::utils::{colorize, message, sanitize, VideoInfo};
 use crate::Error;
 use colored::Color;
-use regex::Regex;
+use fancy_regex::Regex;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

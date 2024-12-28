@@ -6,7 +6,7 @@ use crate::init::external::External;
 use crate::Error;
 use colored::Color;
 use derive_more::Constructor;
-use regex::Regex;
+use fancy_regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::fmt::{self, Debug, Display, Formatter};
@@ -329,7 +329,7 @@ struct User {
 }
 
 fn channel_regex(channel: &str) -> bool {
-    RE.is_match(channel)
+    RE.is_match(channel).unwrap_or(false)
 }
 
 fn get_channel_request(identifier: &str, context: &mut Context) -> Result<ChannelData, Error> {

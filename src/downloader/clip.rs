@@ -5,7 +5,7 @@ use crate::init::external::External;
 use crate::Error;
 use chrono::{SecondsFormat, Utc};
 use colored::Color;
-use regex::Regex;
+use fancy_regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use std::path::Path;

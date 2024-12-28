@@ -6,7 +6,7 @@ use crate::utils::{
 };
 use crate::Error;
 use colored::Color;
-use regex::Regex;
+use fancy_regex::Regex;
 use std::path::Path;
 
 pub(super) fn download<T: VideoInfo>(
@@ -183,7 +183,7 @@ pub(super) fn regex_helper(
     regexen: &[&Regex],
 ) -> Result<String, Error> {
     for regex in regexen {
-        if let Some(captures) = regex.captures(text) {
+        if let Ok(Some(captures)) = regex.captures(text) {
             if let Some(capture) = captures.get(1) {
                 message(
                     &format!("[regex] Captured {}", capture.as_str()),

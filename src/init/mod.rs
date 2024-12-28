@@ -2,7 +2,7 @@ use self::external::External;
 use crate::{utils::Spinner, Error};
 use chrono::Duration;
 use derive_more::Constructor;
-use regex::Regex;
+use fancy_regex::Regex;
 use reqwest::blocking::Client;
 use std::sync::LazyLock;
 mod args;
@@ -124,7 +124,7 @@ fn parse_duration(text: &str) -> Duration {
     let mut duration = Duration::seconds(0);
     let result = SPLIT.captures_iter(text);
     let pairs = result
-        .map(|c| c.get(0).unwrap().as_str())
+        .map(|c| c.unwrap().get(0).unwrap().as_str())
         .map(Into::into)
         .collect::<Vec<Time>>();
     for pair in pairs {
@@ -154,7 +154,7 @@ struct Time {
 
 impl From<&str> for Time {
     fn from(text: &str) -> Self {
-        let captures = PAIR.captures(text).unwrap();
+        let captures = PAIR.captures(text).unwrap().unwrap();
         let number = captures.get(1).unwrap().as_str().to_string();
         let unit = captures.get(2).unwrap().as_str().to_string();
         Time { number, unit }
