@@ -25,7 +25,7 @@ pub(super) struct Input {
 
 pub(super) fn run() -> Result<Input, Error> {
     let args = args::parse();
-    let mut spinner = Spinner::new(args.verbosity);
+    let mut spinner = Spinner::new(args.verbosity, args.hide_spinners);
 
     spinner.create(" Checking external programs");
     let missing = external::find_missing(&args.video_type);

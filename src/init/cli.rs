@@ -85,4 +85,8 @@ pub(crate) struct Cli {
     /// Hide output, use twice to hide errors as well
     #[clap(short, long, action = clap::ArgAction::Count, group = "output")]
     pub(crate) silent: u8,
+
+    /// Hide spinners
+    #[clap(short = 'q', long, group = "output", takes_value = false)]
+    pub(crate) hide_spinners: bool,
 }

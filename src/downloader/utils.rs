@@ -210,6 +210,7 @@ pub(crate) struct Spinner {
     handle: Option<SpinnerHandle>,
     message: Option<String>,
     verbosity: i16,
+    hidden: bool,
 }
 
 impl Debug for Spinner {
@@ -227,22 +228,27 @@ impl Debug for Spinner {
 }
 
 impl Spinner {
-    pub(crate) fn new(verbosity: i16) -> Self {
+    pub(crate) fn new(verbosity: i16, hidden: bool) -> Self {
         Self {
             handle: None,
             message: None,
             verbosity,
+            hidden,
         }
     }
     pub(crate) fn create(&mut self, message: &str) {
         if self.verbosity >= -1 {
-            self.message = Some(message.to_string());
-            self.handle = Some(
-                SpinnerBuilder::new()
-                    .spinner(&DOTS2)
-                    .text(message.to_string())
-                    .start(),
-            );
+            if self.hidden {
+                println!("{}", message.trim());
+            } else {
+                self.message = Some(message.to_string());
+                self.handle = Some(
+                    SpinnerBuilder::new()
+                        .spinner(&DOTS2)
+                        .text(message.to_string())
+                        .start(),
+                );
+            }
         }
     }
     pub(crate) fn start(&mut self) {
