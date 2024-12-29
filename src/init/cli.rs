@@ -87,6 +87,6 @@ pub(crate) struct Cli {
     pub(crate) silent: u8,
 
     /// Hide spinners
-    #[clap(short = 'q', long, group = "output", takes_value = false)]
+    #[clap(short = 'q', long, takes_value = false)]
     pub(crate) hide_spinners: bool,
 }
