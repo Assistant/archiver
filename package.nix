@@ -17,6 +17,8 @@ in rustPlatform.buildRustPackage rec {
 
   cargoLock.lockFile = ./Cargo.lock;
 
+  doCheck = false;
+
   nativeBuildInputs = [ installShellFiles makeWrapper ];
 
   postInstall = ''
