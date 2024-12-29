@@ -5,7 +5,7 @@
 
   outputs = { self, nixpkgs }:
     let
-      extraPrograms = [ "twitch_downloader" "chat_downloader" "format" ];
+      extraPrograms = [ "twitch_downloader" "format" ];
       forAllSystems = nixpkgs.lib.genAttrs [
         "aarch64-linux"
         "x86_64-linux"
