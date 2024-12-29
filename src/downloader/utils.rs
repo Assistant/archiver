@@ -245,9 +245,7 @@ impl Spinner {
     }
     pub(crate) fn create(&mut self, message: &str) {
         if self.verbosity >= -1 {
-            if self.hidden {
-                println!("{}", message.trim());
-            } else {
+            if !self.hidden {
                 self.message = Some(message.to_string());
                 self.handle = Some(
                     SpinnerBuilder::new()
