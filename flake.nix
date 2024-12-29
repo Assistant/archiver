@@ -12,6 +12,14 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
+      config = {
+        permittedInsecurePackages = [
+          "dotnet-runtime-6.0.36"
+          "dotnet-runtime-wrapped-6.0.36"
+          "dotnet-sdk-6.0.136"
+          "dotnet-sdk-wrapped-6.0.136"
+        ];
+      };
       packageName = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).package.name;
       overlays = [ self.overlays.default ];
       liftPackages = pkgs: nixpkgs.lib.foldl'
@@ -28,23 +36,23 @@
       overlays.default = final: prev: liftOverlays final;
 
       packages = forAllSystems (system:
-        let pkgs = import ./nixpkgs.nix { inherit system overlays; };
+        let pkgs = import ./nixpkgs.nix { inherit system overlays config; };
         in liftPackages pkgs
       );
       legacyPackages = self.packages;
 
       checks = forAllSystems (system:
-        let pkgs = import ./nixpkgs.nix { inherit system overlays; };
+        let pkgs = import ./nixpkgs.nix { inherit system overlays config; };
         in import nix/checks.nix { inherit pkgs; }
       );
 
       apps = forAllSystems (system:
-        let pkgs = import ./nixpkgs.nix { inherit system overlays; };
+        let pkgs = import ./nixpkgs.nix { inherit system overlays config; };
         in import nix/apps.nix { inherit pkgs; }
       );
 
       devShells = forAllSystems (system:
-        let pkgs = import ./nixpkgs.nix { inherit system overlays; };
+        let pkgs = import ./nixpkgs.nix { inherit system overlays config; };
         in import ./shell.nix { inherit pkgs; }
       );
 
