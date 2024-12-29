@@ -79,11 +79,11 @@ pub(crate) struct Cli {
     pub(crate) logging: bool,
 
     /// Increase output verbosity
-    #[clap(short, long, action = clap::ArgAction::Count, group = "output")]
+    #[clap(short, long, action = clap::ArgAction::Count)]
     pub(crate) verbose: u8,
 
     /// Hide output, use twice to hide errors as well
-    #[clap(short, long, action = clap::ArgAction::Count, group = "output")]
+    #[clap(short, long, action = clap::ArgAction::Count)]
     pub(crate) silent: u8,
 
     /// Hide spinners
