@@ -15,7 +15,7 @@ static SPLIT: LazyLock<Regex> =
     LazyLock::new(|| unsafe { Regex::new(r"([0-9]+[a-zA-Z]+)").unwrap_unchecked() });
 static PAIR: LazyLock<Regex> =
     LazyLock::new(|| unsafe { Regex::new(r"([0-9]+)([a-zA-Z]+)").unwrap_unchecked() });
-static ZERO: LazyLock<Duration> = LazyLock::new(|| Duration::zero());
+static ZERO: LazyLock<Duration> = LazyLock::new(Duration::zero);
 
 #[derive(Debug, Constructor)]
 pub(super) struct Input {

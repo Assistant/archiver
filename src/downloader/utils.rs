@@ -27,23 +27,14 @@ static ACCENTS: LazyLock<HashMap<char, &str>> = LazyLock::new(|| {
     let replacements = [
         "A", "A", "A", "A", "A", "A", "AE", "C", "E", "E", "E", "E", "I", "I", "I", "I", "D",
         "N", "O", "O", "O", "O", "O", "O", "O", "OE", "U", "U", "U", "U", "U", "Y", "TH", "ss",
-        "a", "a", "a", "a", "a", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i", "d", 
+        "a", "a", "a", "a", "a", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i", "d",
         "n", "o", "o", "o", "o", "o", "o", "o", "oe", "u", "u", "u", "u", "u", "y", "th", "y",
     ];
     source.chars().zip(replacements).collect()
 });
 static SYMBOLS: LazyLock<HashMap<char, &str>> = LazyLock::new(|| {
-    HashMap::from([
-        ('"', "＂"),
-        ('*', "＊"),
-        (':', "："),
-        ('<', "＜"),
-        ('>', "＞"),
-        ('?', "？"),
-        ('|', "｜"),
-        ('/', "⧸"),
-        ('\\', "⧹"),
-    ])
+    let replacements = ["＂", "＊", "：", "＜", "＞", "？", "｜", "⧸", "⧹"];
+    "\"*:<>?|/\\".chars().zip(replacements).collect()
 });
 
 pub(crate) trait VideoInfo: Debug + Display + Serialize + DeserializeOwned {
@@ -154,12 +145,13 @@ pub(super) fn download_file(
 }
 
 fn is_cm(c: char) -> bool {
-    use GeneralCategory::*;
-    match get_general_category(c) {
-        Control | Format | Surrogate | PrivateUse | SpacingMark | EnclosingMark
-        | NonspacingMark => true,
-        _ => false,
-    }
+    use GeneralCategory::{
+        Control, EnclosingMark, Format, NonspacingMark, PrivateUse, SpacingMark, Surrogate,
+    };
+    matches!(
+        get_general_category(c),
+        Control | Format | Surrogate | PrivateUse | SpacingMark | EnclosingMark | NonspacingMark
+    )
 }
 
 fn replace_insane(character: char, restrict: bool) -> String {
