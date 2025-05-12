@@ -26,10 +26,10 @@ static STRIP: LazyLock<Regex> = LazyLock::new(|| unsafe {
 static ACCENTS: LazyLock<HashMap<char, &str>> = LazyLock::new(|| {
     let source = "ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ";
     let replacements = [
-        "A", "A", "A", "A", "A", "A", "AE", "C", "E", "E", "E", "E", "I", "I", "I", "I", "D",
-        "N", "O", "O", "O", "O", "O", "O", "O", "OE", "U", "U", "U", "U", "U", "Y", "TH", "ss",
-        "a", "a", "a", "a", "a", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i", "d",
-        "n", "o", "o", "o", "o", "o", "o", "o", "oe", "u", "u", "u", "u", "u", "y", "th", "y",
+        "A", "A", "A", "A", "A", "A", "AE", "C", "E", "E", "E", "E", "I", "I", "I", "I", "D", "N",
+        "O", "O", "O", "O", "O", "O", "O", "OE", "U", "U", "U", "U", "U", "Y", "TH", "ss", "a",
+        "a", "a", "a", "a", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i", "d", "n", "o",
+        "o", "o", "o", "o", "o", "o", "oe", "u", "u", "u", "u", "u", "y", "th", "y",
     ];
     source.chars().zip(replacements).collect()
 });
@@ -245,16 +245,14 @@ impl Spinner {
         }
     }
     pub(crate) fn create(&mut self, message: &str) {
-        if self.verbosity >= -1 {
-            if !self.hidden {
-                self.message = Some(message.to_string());
-                self.handle = Some(
-                    SpinnerBuilder::new()
-                        .spinner(&DOTS2)
-                        .text(message.to_string())
-                        .start(),
-                );
-            }
+        if self.verbosity >= -1 && !self.hidden {
+            self.message = Some(message.to_string());
+            self.handle = Some(
+                SpinnerBuilder::new()
+                    .spinner(&DOTS2)
+                    .text(message.to_string())
+                    .start(),
+            );
         }
     }
     pub(crate) fn start(&mut self) {
