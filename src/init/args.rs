@@ -13,6 +13,11 @@ pub(super) struct Args {
     pub(super) range: String,
     pub(super) interval: String,
     pub(super) threads: u16,
+    pub(super) post_json: Option<String>,
+    pub(super) post_thumbnail: Option<String>,
+    pub(super) post_chat: Option<String>,
+    pub(super) post_chat_process: Option<String>,
+    pub(super) post_video: Option<String>,
 }
 
 pub(super) fn parse() -> Args {
@@ -48,5 +53,10 @@ pub(super) fn parse() -> Args {
         cli.range,
         cli.interval,
         cli.threads,
+        cli.post_json,
+        cli.post_thumbnail,
+        cli.post_chat,
+        cli.post_chat_process,
+        cli.post_video,
     )
 }

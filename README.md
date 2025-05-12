@@ -75,6 +75,14 @@ These are optional flags that affect how the program works.
 - `-v`, `--verbose`: Increases output, useful for debugging and reporting issues
 - `-V`, `--version`: Print version information [does not require `<TYPE>` or `<INPUT>`]
 
+These optional flags allow commands to be ran after each stage with variables wrapped in curly braces subtituted in.
+Supported variables are `{id}`, `{chat_ext}`, and `{video_title}`. Double curly braces for literals, e.g., `{{var}}` → `"{var}"`.
+- `-1`, `--post-json <SHELL_COMMAND>`: Runs after the json is downloaded
+- `-2`, `--post-thumbnail <SHELL_COMMAND>`: Runs after the thumbnail is downloaded
+- `-3`, `--post-chat <SHELL_COMMAND>`: Runs after the chat is downloaded
+- `-4`, `--post-chat-process <SHELL_COMMAND>`: Runs after the chat is processed
+- `-5`, `--post-video <SHELL_COMMAND>`: Runs after the video is downloaded
+
 These optional flags are only used when downloading Twitch Clips with both `--clips` and `--channel` options.
 - `-i <DURATION>`, `--interval <DURATION>`: Time interval to search for clips from a channel, shorter intervals will take longer but produce more complete results [default: `1hour`]
 - `-r <DURATION>`, `--range <DURATION>`: How long ago to start searching for clips [default: `1week`]

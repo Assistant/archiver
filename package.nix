@@ -2,6 +2,7 @@
 , rustPlatform
 , installShellFiles
 , makeWrapper
+, bash
 , yt-dlp
 , brotli
 , twitch_downloader
@@ -39,7 +40,7 @@ in rustPlatform.buildRustPackage rec {
 
   postFixup = ''
     wrapProgram $out/bin/archiver \
-      --set PATH ${lib.makeBinPath [ yt-dlp brotli twitch_downloader python3Packages.chat-downloader twitch-chat-downloader ]}
+      --set PATH ${lib.makeBinPath [ bash yt-dlp brotli twitch_downloader python3Packages.chat-downloader twitch-chat-downloader ]}
   '';
 
   meta = with lib; {

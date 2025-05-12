@@ -1,4 +1,4 @@
-use super::utils::colorize;
+use super::utils::{colorize, run_template};
 use crate::init::{Context, VideoType};
 use crate::utils::{
     download_file, error_msg, good_msg, message, sanitize, split_videos, warn_msg, write_file,
@@ -7,6 +7,7 @@ use crate::utils::{
 use crate::Error;
 use colored::Color;
 use fancy_regex::Regex;
+use std::collections::HashMap;
 use std::path::Path;
 
 pub(super) fn download<T: VideoInfo>(
@@ -29,6 +30,10 @@ pub(super) fn download<T: VideoInfo>(
         }
         VideoType::Clip => format!("{id}.mp4"),
     };
+    let mut vars = HashMap::new();
+    vars.insert("id".into(), id.into());
+    vars.insert("chat_ext".into(), chat_ext.into());
+    vars.insert("video_title".into(), video_title.clone());
 
     let spinner_text = format!(" Saving JSON {id}.json");
     context.spinner.create(&spinner_text);
@@ -38,6 +43,15 @@ pub(super) fn download<T: VideoInfo>(
     if let Err(error) = result {
         if error != Error::AlreadyExists {
             return Err(error);
+        }
+    }
+    if let Some(template) = &context.post_json {
+        context.spinner.create(" Running post_json");
+        let result = run_template(template, &vars);
+        context.spinner.end();
+        match result.is_ok() {
+            true => good_msg(Some("post_json"), "Success", context),
+            false => error_msg(Some("post_json"), "Failed", context),
         }
     }
 
@@ -52,6 +66,15 @@ pub(super) fn download<T: VideoInfo>(
         "Download",
         &format!("{id}.jpg"),
     );
+    if let Some(template) = &context.post_thumbnail {
+        context.spinner.create(" Running post_thumbnail");
+        let result = run_template(template, &vars);
+        context.spinner.end();
+        match result.is_ok() {
+            true => good_msg(Some("post_thumbnail"), "Success", context),
+            false => error_msg(Some("post_thumbnail"), "Failed", context),
+        }
+    }
 
     let spinner_text = format!(" Downloading {id}{chat_ext}");
     context.spinner.create(&spinner_text);
@@ -64,6 +87,15 @@ pub(super) fn download<T: VideoInfo>(
         "Download",
         &format!("{id}{chat_ext}"),
     );
+    if let Some(template) = &context.post_chat {
+        context.spinner.create(" Running post_chat");
+        let result = run_template(template, &vars);
+        context.spinner.end();
+        match result.is_ok() {
+            true => good_msg(Some("post_chat"), "Success", context),
+            false => error_msg(Some("post_chat"), "Failed", context),
+        }
+    }
 
     let spinner_text = format!(" Processing {id}{chat_ext}");
     context.spinner.create(&spinner_text);
@@ -76,6 +108,15 @@ pub(super) fn download<T: VideoInfo>(
         "Process",
         &format!("{id}{chat_ext}.br"),
     );
+    if let Some(template) = &context.post_chat_process {
+        context.spinner.create(" Running post_chat_process");
+        let result = run_template(template, &vars);
+        context.spinner.end();
+        match result.is_ok() {
+            true => good_msg(Some("post_chat_process"), "Success", context),
+            false => error_msg(Some("post_chat_process"), "Failed", context),
+        }
+    }
 
     if !context.skip_video {
         let spinner_text = format!(" Downloading {video_title}");
@@ -83,6 +124,15 @@ pub(super) fn download<T: VideoInfo>(
         let result = get_video(info, context);
         context.spinner.end();
         parse_result(&result, context, "video", "Download", &video_title);
+        if let Some(template) = &context.post_video {
+            context.spinner.create(" Running post_video");
+            let result = run_template(template, &vars);
+            context.spinner.end();
+            match result.is_ok() {
+                true => good_msg(Some("post_video"), "Success", context),
+                false => error_msg(Some("post_video"), "Failed", context),
+            }
+        }
 
         message(
             &colorize(

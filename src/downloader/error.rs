@@ -22,6 +22,7 @@ pub(crate) enum Error {
     Expected,
     Token(String),
     Config(String),
+    Template,
 }
 // todo!() Make better errors with information as to what went wrong
 
@@ -67,6 +68,12 @@ impl From<string::FromUtf8Error> for Error {
     }
 }
 
+impl From<strfmt::FmtError> for Error {
+    fn from(_: strfmt::FmtError) -> Error {
+        Error::Template
+    }
+}
+
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
@@ -87,6 +94,7 @@ impl Display for Error {
             Error::CommandFailed(program) => write!(f, "Command failed: {program}"),
             Error::Expected => write!(f, "This error is expected"),
             Error::Token(message) | Error::Config(message) => write!(f, "{message}"),
+            Error::Template => write!(f, "Failed to run template"),
         }
     }
 }

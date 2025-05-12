@@ -9,8 +9,9 @@ use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::Path;
-use std::process::Stdio;
+use std::process::{Command, Stdio};
 use std::sync::LazyLock;
+use strfmt::strfmt;
 use terminal_spinners::{SpinnerBuilder, SpinnerHandle, DOTS2};
 use unicode_general_category::{get_general_category, GeneralCategory};
 use unicode_normalization::UnicodeNormalization;
@@ -271,5 +272,19 @@ impl Spinner {
     pub(crate) fn end(&mut self) {
         self.stop();
         self.message = None;
+    }
+}
+
+pub(crate) fn run_template(template: &str, vars: &HashMap<String, String>) -> Result<(), Error> {
+    match Command::new("bash")
+        .arg("-c")
+        .arg(&strfmt(template, vars)?)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()?
+        .success()
+    {
+        true => Ok(()),
+        false => Err(Error::Template),
     }
 }

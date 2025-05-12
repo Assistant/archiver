@@ -80,6 +80,11 @@ pub(super) fn run() -> Result<Input, Error> {
         interval,
         logging: args.logging,
         spinner,
+        post_json: args.post_json,
+        post_thumbnail: args.post_thumbnail,
+        post_chat: args.post_chat,
+        post_chat_process: args.post_chat_process,
+        post_video: args.post_video,
     };
     Ok(Input::new(args.videos, context))
 }
@@ -118,6 +123,11 @@ pub(super) struct Context {
     pub(super) interval: Duration,
     pub(super) logging: bool,
     pub(super) spinner: Spinner,
+    pub(super) post_json: Option<String>,
+    pub(super) post_thumbnail: Option<String>,
+    pub(super) post_chat: Option<String>,
+    pub(super) post_chat_process: Option<String>,
+    pub(super) post_video: Option<String>,
 }
 
 fn parse_duration(text: &str) -> Duration {
