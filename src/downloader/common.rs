@@ -7,6 +7,7 @@ use crate::utils::{
 use crate::Error;
 use colored::Color;
 use fancy_regex::Regex;
+use shell_escape::escape;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -33,7 +34,10 @@ pub(super) fn download<T: VideoInfo>(
     let mut vars = HashMap::new();
     vars.insert("id".into(), id.into());
     vars.insert("chat_ext".into(), chat_ext.into());
-    vars.insert("video_title".into(), video_title.clone());
+    vars.insert(
+        "video_title".into(),
+        escape(video_title.clone().into()).into(),
+    );
 
     let spinner_text = format!(" Saving JSON {id}.json");
     context.spinner.create(&spinner_text);
