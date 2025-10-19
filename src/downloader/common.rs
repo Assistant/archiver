@@ -49,9 +49,9 @@ pub(super) fn download<T: VideoInfo>(
             return Err(error);
         }
     }
-    if let Some(template) = &context.post_json {
+    for template in context.post_json.clone() {
         context.spinner.create(" Running post_json");
-        let result = run_template(template, &vars);
+        let result = run_template(&template, &vars);
         context.spinner.end();
         match result.is_ok() {
             true => good_msg(Some("post_json"), "Success", context),
@@ -70,9 +70,9 @@ pub(super) fn download<T: VideoInfo>(
         "Download",
         &format!("{id}.jpg"),
     );
-    if let Some(template) = &context.post_thumbnail {
+    for template in context.post_thumbnail.clone() {
         context.spinner.create(" Running post_thumbnail");
-        let result = run_template(template, &vars);
+        let result = run_template(&template, &vars);
         context.spinner.end();
         match result.is_ok() {
             true => good_msg(Some("post_thumbnail"), "Success", context),
@@ -91,9 +91,9 @@ pub(super) fn download<T: VideoInfo>(
         "Download",
         &format!("{id}{chat_ext}"),
     );
-    if let Some(template) = &context.post_chat {
+    for template in context.post_chat.clone() {
         context.spinner.create(" Running post_chat");
-        let result = run_template(template, &vars);
+        let result = run_template(&template, &vars);
         context.spinner.end();
         match result.is_ok() {
             true => good_msg(Some("post_chat"), "Success", context),
@@ -112,9 +112,9 @@ pub(super) fn download<T: VideoInfo>(
         "Process",
         &format!("{id}{chat_ext}.br"),
     );
-    if let Some(template) = &context.post_chat_process {
+    for template in context.post_chat_process.clone() {
         context.spinner.create(" Running post_chat_process");
-        let result = run_template(template, &vars);
+        let result = run_template(&template, &vars);
         context.spinner.end();
         match result.is_ok() {
             true => good_msg(Some("post_chat_process"), "Success", context),
@@ -128,9 +128,9 @@ pub(super) fn download<T: VideoInfo>(
         let result = get_video(info, context);
         context.spinner.end();
         parse_result(&result, context, "video", "Download", &video_title);
-        if let Some(template) = &context.post_video {
+        for template in context.post_video.clone() {
             context.spinner.create(" Running post_video");
-            let result = run_template(template, &vars);
+            let result = run_template(&template, &vars);
             context.spinner.end();
             match result.is_ok() {
                 true => good_msg(Some("post_video"), "Success", context),

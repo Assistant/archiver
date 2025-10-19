@@ -123,11 +123,11 @@ pub(super) struct Context {
     pub(super) interval: Duration,
     pub(super) logging: bool,
     pub(super) spinner: Spinner,
-    pub(super) post_json: Option<String>,
-    pub(super) post_thumbnail: Option<String>,
-    pub(super) post_chat: Option<String>,
-    pub(super) post_chat_process: Option<String>,
-    pub(super) post_video: Option<String>,
+    pub(super) post_json: Vec<String>,
+    pub(super) post_thumbnail: Vec<String>,
+    pub(super) post_chat: Vec<String>,
+    pub(super) post_chat_process: Vec<String>,
+    pub(super) post_video: Vec<String>,
 }
 
 fn parse_duration(text: &str) -> Duration {

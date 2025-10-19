@@ -13,11 +13,11 @@ pub(super) struct Args {
     pub(super) range: String,
     pub(super) interval: String,
     pub(super) threads: u16,
-    pub(super) post_json: Option<String>,
-    pub(super) post_thumbnail: Option<String>,
-    pub(super) post_chat: Option<String>,
-    pub(super) post_chat_process: Option<String>,
-    pub(super) post_video: Option<String>,
+    pub(super) post_json: Vec<String>,
+    pub(super) post_thumbnail: Vec<String>,
+    pub(super) post_chat: Vec<String>,
+    pub(super) post_chat_process: Vec<String>,
+    pub(super) post_video: Vec<String>,
 }
 
 pub(super) fn parse() -> Args {

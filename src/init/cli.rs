@@ -92,21 +92,21 @@ pub(crate) struct Cli {
 
     /// Template to run after the json is downloaded
     #[clap(short = '1', long, value_name = "SHELL_COMMAND")]
-    pub(crate) post_json: Option<String>,
+    pub(crate) post_json: Vec<String>,
 
     /// Template to run after the thumbnail is downloaded
     #[clap(short = '2', long, value_name = "SHELL_COMMAND")]
-    pub(crate) post_thumbnail: Option<String>,
+    pub(crate) post_thumbnail: Vec<String>,
 
     /// Template to run after chat is downloaded
     #[clap(short = '3', long, value_name = "SHELL_COMMAND")]
-    pub(crate) post_chat: Option<String>,
+    pub(crate) post_chat: Vec<String>,
 
     /// Template to run after chat is processed
     #[clap(short = '4', long, value_name = "SHELL_COMMAND")]
-    pub(crate) post_chat_process: Option<String>,
+    pub(crate) post_chat_process: Vec<String>,
 
     /// Template to run after the video is downloaded
     #[clap(short = '5', long, value_name = "SHELL_COMMAND")]
-    pub(crate) post_video: Option<String>,
+    pub(crate) post_video: Vec<String>,
 }
